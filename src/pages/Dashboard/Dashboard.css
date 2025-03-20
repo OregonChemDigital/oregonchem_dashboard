@@ -1,0 +1,37 @@
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 20px;
+    }
+    
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Style for the product form card to span the full height of one column */
+    .large-card {
+      grid-column: 2; /* Puts the product form card in the second column */
+      grid-row: span 3; /* Make it span 3 rows, effectively using the full height */
+    }
+    
+    /* Style for the smaller cards (one per row in the first column) */
+    .small-card {
+      grid-column: 1; /* Put the smaller cards in the first column */
+    }
+    
+    /* For responsiveness: on smaller screens, stack all cards vertically */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        grid-template-columns: 1fr; /* Collapse to a single column layout */
+      }
+    
+      .product-form-card, 
+      .smaller-card {
+        grid-column: span 1; /* Ensure all cards stack in one column */
+      }
+    }
