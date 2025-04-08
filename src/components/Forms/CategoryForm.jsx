@@ -1,23 +1,27 @@
 import React, { useState } from "react";
 import { useAuth } from '../../contexts/authContext';
+import { useLoading } from '../../contexts/loadingContext';
 import "./Forms.css";
 
 const CategoryForm = ({ onCategoryAdded, onClose }) => {
   const { currentUser } = useAuth();
+  const { showLoading, hideLoading, showSuccess } = useLoading();
   const [categoryName, setCategoryName] = useState("");
   const [categoryImages, setCategoryImages] = useState(Array(5).fill({ file: null, previewUrl: null }));
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setCategoryName("");
+    setCategoryImages(Array(5).fill({ file: null, previewUrl: null }));
+    setErrors({});
+  };
 
   const handleImageUpload = (event, index) => {
     const file = event.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setMessage("Please upload an image file");
-      setMessageType("error");
+      setErrors({ images: "Please upload an image file" });
       return;
     }
 
@@ -48,18 +52,14 @@ const CategoryForm = ({ onCategoryAdded, onClose }) => {
     e.preventDefault();
     
     if (!validateForm()) {
-      setMessage("Please fix the errors in the form");
-      setMessageType("error");
       return;
     }
 
     try {
-      setLoading(true);
-      setMessage("");
+      showLoading();
       
       if (!currentUser) {
-        setMessage("You need to be logged in to submit a category.");
-        return;
+        throw new Error("You need to be logged in to submit a category.");
       }
 
       const token = await currentUser.getIdToken();
@@ -84,8 +84,8 @@ const CategoryForm = ({ onCategoryAdded, onClose }) => {
         throw new Error('Failed to create category');
       }
 
-      setMessage("Category created successfully!");
-      setMessageType("success");
+      showSuccess("Category created successfully!");
+      resetForm();
       
       if (onCategoryAdded) {
         onCategoryAdded();
@@ -95,21 +95,14 @@ const CategoryForm = ({ onCategoryAdded, onClose }) => {
         onClose();
       }
     } catch (error) {
-      setMessage(`Error creating category: ${error.message}`);
-      setMessageType("error");
+      setErrors({ submit: error.message });
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
-      {message && (
-        <div className={`message ${messageType}`}>
-          {message}
-        </div>
-      )}
-      
       <div className="form-group">
         <label htmlFor="categoryName" className="card-label">
           Nombre de Categoría
@@ -155,8 +148,8 @@ const CategoryForm = ({ onCategoryAdded, onClose }) => {
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="submit-button" disabled={loading}>
-          {loading ? "Creating..." : "Añadir categoría"}
+        <button type="submit" className="submit-button">
+          Añadir categoría
         </button>
         {onClose && (
           <button type="button" onClick={onClose} className="secondary-button">

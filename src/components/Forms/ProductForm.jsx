@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../../contexts/authContext';
+import { useLoading } from '../../contexts/loadingContext';
 import "./Forms.css";
 
 const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess }) => {
   const { currentUser } = useAuth();
+  const { showLoading, hideLoading, showSuccess } = useLoading();
   const [presentations, setPresentations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filteredPresentations, setFilteredPresentations] = useState([]);
@@ -16,15 +18,12 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
     Array(5).fill({ file: null, previewUrl: null })
   );
   const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        setMessage("");
+        showLoading();
         setErrors({});
 
         const [presentationsRes, categoriesRes] = await Promise.all([
@@ -44,11 +43,10 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         setPresentations(propsPresentations || presentationsData.data || []);
         setCategories(propsCategories || categoriesData.data || []);
       } catch (error) {
-        setMessage("Error loading presentations and categories");
-        setMessageType("error");
         setErrors({ fetch: error.message });
       } finally {
         setLoading(false);
+        hideLoading();
       }
     };
 
@@ -59,7 +57,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       setCategories(propsCategories);
       setLoading(false);
     }
-  }, [propsPresentations, propsCategories]);
+  }, [propsPresentations, propsCategories, showLoading, hideLoading]);
 
   useEffect(() => {
     if (presentations) {
@@ -74,8 +72,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setMessage("Please upload an image file");
-      setMessageType("error");
+      setErrors({ images: "Please upload an image file" });
       return;
     }
 
@@ -132,22 +129,23 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
     e.preventDefault();
     
     if (!validateForm()) {
-      setMessage("Please fix the errors in the form");
-      setMessageType("error");
       return;
     }
 
     try {
-      setLoading(true);
-      setMessage("");
+      showLoading();
       
+      if (!currentUser) {
+        throw new Error("You need to be logged in to submit a product.");
+      }
+
+      const token = await currentUser.getIdToken();
       const formData = new FormData();
       const productName = document.getElementById("product-name").value;
       formData.append("name", productName);
       selectedPresentations.forEach(p => formData.append("presentations[]", p));
       selectedCategories.forEach(c => formData.append("categories[]", c));
 
-      // Append descriptions and uses
       descriptions.forEach((desc, index) => {
         formData.append(`descriptions[site${index + 1}]`, desc);
       });
@@ -156,19 +154,12 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         formData.append(`uses[site${index + 1}]`, use);
       });
 
-      // Append images
       productImages.forEach((imageObj, index) => {
         if (imageObj.file) {
           formData.append(`images[site${index + 1}]`, imageObj.file);
         }
       });
 
-      if (!currentUser) {
-        setMessage("You need to be logged in to submit a product.");
-        return;
-      }
-
-      const token = await currentUser.getIdToken();
       const response = await fetch("http://localhost:5001/api/productos/nuevo", {
         method: "POST",
         headers: {
@@ -179,7 +170,6 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
 
       if (!response.ok) {
         const textResponse = await response.text();
-        console.error("Error response:", textResponse);
         throw new Error(`Server error: ${textResponse}`);
       }
 
@@ -192,19 +182,16 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       setSelectedPresentations([]);
       setSelectedCategories([]);
       setErrors({});
-      setMessage("Product added successfully!");
-      setMessageType("success");
       
-      // Call onSuccess callback if provided
+      showSuccess("Product added successfully!");
+      
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error("Error submitting form", error);
-      setMessage(`Error adding product: ${error.message}`);
-      setMessageType("error");
+      setErrors({ submit: error.message });
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
@@ -356,11 +343,6 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
             Añadir producto
           </button>
         </div>
-        {message && (
-          <p className={messageType === "success" ? "success-message" : "error-message"}>
-            {message}
-          </p>
-        )}
       </form>
     </div>
   );

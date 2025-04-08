@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from '../../contexts/authContext';
+import { useLoading } from '../../contexts/loadingContext';
 import "./Forms.css";
 
 const MEASUREMENT_OPTIONS = {
@@ -16,22 +17,27 @@ const MEASUREMENT_OPTIONS = {
 
 const PresentationForm = ({ onSuccess }) => {
   const { currentUser } = useAuth();
+  const { showLoading, hideLoading, showSuccess } = useLoading();
   const [type, setType] = useState("solido");
   const [measure, setMeasure] = useState("g");
   const [quantity, setQuantity] = useState("");
   const [presentationImages, setPresentationImages] = useState(Array(5).fill({ file: null, previewUrl: null }));
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setType("solido");
+    setMeasure("g");
+    setQuantity("");
+    setPresentationImages(Array(5).fill({ file: null, previewUrl: null }));
+    setErrors({});
+  };
 
   const handleImageUpload = (event, index) => {
     const file = event.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setMessage("Por favor suba un archivo de imagen");
-      setMessageType("error");
+      setErrors({ images: "Por favor suba un archivo de imagen" });
       return;
     }
 
@@ -76,14 +82,11 @@ const PresentationForm = ({ onSuccess }) => {
     event.preventDefault();
     
     if (!validateForm()) {
-      setMessage("Por favor corrija los errores en el formulario");
-      setMessageType("error");
       return;
     }
 
     try {
-      setLoading(true);
-      setMessage("");
+      showLoading();
       
       if (!currentUser) {
         throw new Error("Necesita estar conectado para enviar una presentación");
@@ -116,28 +119,21 @@ const PresentationForm = ({ onSuccess }) => {
         throw new Error(errorData.message || 'Error al crear la presentación');
       }
 
-      setMessage("Presentación creada exitosamente!");
-      setMessageType("success");
+      showSuccess("Presentación creada exitosamente!");
+      resetForm();
       
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      setMessage(`Error al crear la presentación: ${error.message}`);
-      setMessageType("error");
+      setErrors({ submit: error.message });
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
-      {message && (
-        <div className={`message ${messageType}`}>
-          {message}
-        </div>
-      )}
-      
       <div className="form-group">
         <label htmlFor="type" className="card-label">
           Tipo de presentación:
@@ -216,8 +212,8 @@ const PresentationForm = ({ onSuccess }) => {
       </div>
 
       <div className="form-group">
-        <button type="submit" className="submit-button" disabled={loading}>
-          {loading ? "Creando..." : "Añadir presentación"}
+        <button type="submit" className="submit-button">
+          Añadir presentación
         </button>
       </div>
     </form>
