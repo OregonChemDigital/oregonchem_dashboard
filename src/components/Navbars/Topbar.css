@@ -1,0 +1,50 @@
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 250px;
+  width: calc(100% - 250px);
+  height: 60px;
+  background: #282c34;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  transition: left 0.3s ease, width 0.3s ease;
+}
+
+.topbar.collapsed {
+  left: 60px;
+  width: calc(100% - 60px);
+}
+
+.topbar__toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 25px;
+  cursor: pointer;
+  border: 1px solid white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+}
+
+.topbar__title {
+  flex-grow: 1;
+  margin-left: 50px;
+}
+
+.topbar__logout {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  margin-right: 80px;
+}
+
+  

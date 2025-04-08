@@ -12,20 +12,21 @@ export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [userLoggedIn, setUserLoggedIn] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log('User is signed in:', user);
+        const unsubscribe = onAuthStateChanged(auth, 
+            (user) => {
                 setCurrentUser(user);
-                setUserLoggedIn(true);
-            } else {
-                console.log('User is signed out');
-                setCurrentUser(null);
-                setUserLoggedIn(false);
+                setUserLoggedIn(!!user);
+                setLoading(false);
+            },
+            (error) => {
+                setError(error.message);
+                setLoading(false);
+                console.error('Auth state change error:', error);
             }
-            setLoading(false);
-        });
+        );
 
         return unsubscribe;
     }, []);
@@ -33,7 +34,8 @@ export function AuthProvider({ children }) {
     const value = {
         currentUser,
         userLoggedIn,
-        loading
+        loading,
+        error
     };
 
     return (

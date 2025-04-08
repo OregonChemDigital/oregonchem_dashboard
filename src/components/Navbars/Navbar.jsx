@@ -58,6 +58,11 @@ const Navbar = () => {
               </NavLink>
             </li>
             <li className="nav__item">
+              <NavLink to="/quimica-industrial" className="nav__link">
+                Química Industrial
+              </NavLink>
+            </li>
+            <li className="nav__item">
               <button className="nav__link logout" onClick={handleLogout}>
                 Logout
               </button>

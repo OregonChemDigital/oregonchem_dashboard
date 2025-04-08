@@ -1,0 +1,21 @@
+.app-layout {
+    display: flex;
+  }
+  
+  .sidebar {
+    flex-shrink: 0;
+  }
+  
+  .main-content {
+    flex-grow: 1;
+    margin-left: 250px; /* Push right to avoid sidebar */
+    margin-top: 60px; /* Push down to avoid topbar */
+    padding: 20px;
+    transition: margin-left 0.3s;
+  }
+  
+  .sidebar.collapsed + .main-content {
+    margin-left: 60px;
+  }
+  
+  

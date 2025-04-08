@@ -1,203 +1,226 @@
 import React, { useState } from "react";
 import { useAuth } from '../../contexts/authContext';
+import "./Forms.css";
 
-const PresentationForm = ({ onPresentationAdded }) => {
+const MEASUREMENT_OPTIONS = {
+  solido: [
+    { value: "g", label: "Gramos (g)" },
+    { value: "kg", label: "Kilogramos (kg)" }
+  ],
+  liquido: [
+    { value: "ml", label: "Mililitros (ml)" },
+    { value: "L", label: "Litros (L)" },
+    { value: "gal", label: "Galones (gal)" }
+  ]
+};
+
+const PresentationForm = ({ onSuccess }) => {
   const { currentUser } = useAuth();
   const [type, setType] = useState("solido");
   const [measure, setMeasure] = useState("g");
   const [quantity, setQuantity] = useState("");
-  const [presentationImages, setPresentationImages] = useState(
-    Array(5).fill({ file: null, previewUrl: null })
-  );
+  const [presentationImages, setPresentationImages] = useState(Array(5).fill({ file: null, previewUrl: null }));
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleImageUpload = (event, index) => {
     const file = event.target.files[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      const updatedImages = [...presentationImages];
-      updatedImages[index] = { file, previewUrl };
-      setPresentationImages(updatedImages);
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setMessage("Por favor suba un archivo de imagen");
+      setMessageType("error");
+      return;
     }
+
+    const previewUrl = URL.createObjectURL(file);
+    setPresentationImages(prev => {
+      const updated = [...prev];
+      updated[index] = { file, previewUrl };
+      return updated;
+    });
   };
 
-  const renderMeasurementOptions = () => {
-    if (type === "solido") {
-      return (
-        <>
-          <option value="g">Gramos (g)</option>
-          <option value="kg">Kilogramos (kg)</option>
-        </>
-      );
-    } else if (type === "liquido") {
-      return (
-        <>
-          <option value="ml">Mililitros (ml)</option>
-          <option value="L">Litros (L)</option>
-          <option value="gal">Galones (gal)</option>
-        </>
-      );
-    }
-  };
+  const renderMeasurementOptions = () => MEASUREMENT_OPTIONS[type].map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ));
 
   const handleTypeChange = (event) => {
     const newType = event.target.value;
     setType(newType);
+    setMeasure(MEASUREMENT_OPTIONS[newType][0].value);
+  };
 
-    if (newType === "solido") {
-      setMeasure("g");
-    } else if (newType === "liquido") {
-      setMeasure("ml");
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!quantity.trim()) {
+      newErrors.quantity = "Cantidad es requerida";
+    } else if (isNaN(quantity) || parseFloat(quantity) <= 0) {
+      newErrors.quantity = "La cantidad debe ser un número positivo";
     }
+    
+    if (!presentationImages.some(img => img.file)) {
+      newErrors.images = "Por favor suba al menos una imagen";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const formData = new FormData();
-    formData.append("name", quantity);
-    formData.append("type", type); //
-    formData.append("measure", measure);
+    
+    if (!validateForm()) {
+      setMessage("Por favor corrija los errores en el formulario");
+      setMessageType("error");
+      return;
+    }
 
     try {
+      setLoading(true);
+      setMessage("");
+      
       if (!currentUser) {
-        setMessage("You need to be logged in to submit a category.");
-        return;
+        throw new Error("Necesita estar conectado para enviar una presentación");
       }
 
-      // Get the ID token from the currentUser  
       const token = await currentUser.getIdToken();
-
-      presentationImages.forEach((imageObj, index) => {
-        if (imageObj.file) {
-          formData.append(`images[site${index + 1}]`, imageObj.file); // Corrected to match backend expectations
+      const formData = new FormData();
+      
+      formData.append("name", `${quantity} ${measure}`);
+      formData.append("type", type);
+      formData.append("measure", measure);
+      formData.append("quantity", quantity);
+      
+      presentationImages.forEach((image, index) => {
+        if (image.file) {
+          formData.append(`images[site${index + 1}]`, image.file);
         }
       });
 
-      const response = await fetch(
-        "https://oregonchem-backend.onrender.com/api/presentaciones/nueva",
-        {
-          method: "POST",
-          headers: {
-            'Authorization': `Bearer ${token}`, // Include the token in the request headers
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch("http://localhost:5001/api/presentaciones/nueva", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
-      if (response.ok) {
-        const data = await response.json();
-        setMessage(`Presentación añadida: ${data.name}`);
-        setMessageType("success");
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
-        setMessage(`Error al añadir presentación: ${errorData.message}`);
-        setMessageType("error");
+        throw new Error(errorData.message || 'Error al crear la presentación');
+      }
+
+      setMessage("Presentación creada exitosamente!");
+      setMessageType("success");
+      
+      if (onSuccess) {
+        onSuccess();
       }
     } catch (error) {
-      setMessage("Error al añadir presentación");
+      setMessage(`Error al crear la presentación: ${error.message}`);
       setMessageType("error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="form-container">
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="type" className="card-label">
-            Tipo de presentación:
-          </label>
-          <select
-            id="type"
-            value={type}
-            onChange={handleTypeChange}
-            required
-            className="input-field"
-          >
-            <option value="solido">Sólido</option>
-            <option value="liquido">Líquido</option>
-          </select>
+    <form onSubmit={handleSubmit} className="form-container">
+      {message && (
+        <div className={`message ${messageType}`}>
+          {message}
         </div>
+      )}
+      
+      <div className="form-group">
+        <label htmlFor="type" className="card-label">
+          Tipo de presentación:
+        </label>
+        <select
+          id="type"
+          value={type}
+          onChange={handleTypeChange}
+          className={`input-field ${errors.type ? "error" : ""}`}
+        >
+          <option value="solido">Sólido</option>
+          <option value="liquido">Líquido</option>
+        </select>
+        {errors.type && <span className="error-message">{errors.type}</span>}
+      </div>
 
-        <div className="form-group">
-          <label htmlFor="measure" className="card-label">
-            Medida:
-          </label>
-          <select
-            id="measure"
-            value={measure}
-            onChange={(event) => setMeasure(event.target.value)}
-            required
-            className="input-field"
-          >
-            {renderMeasurementOptions()}
-          </select>
+      <div className="form-group">
+        <label htmlFor="measure" className="card-label">
+          Medida:
+        </label>
+        <select
+          id="measure"
+          value={measure}
+          onChange={(e) => setMeasure(e.target.value)}
+          className={`input-field ${errors.measure ? "error" : ""}`}
+        >
+          {renderMeasurementOptions()}
+        </select>
+        {errors.measure && <span className="error-message">{errors.measure}</span>}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="quantity" className="card-label">
+          Cantidad:
+        </label>
+        <input
+          type="number"
+          id="quantity"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          className={`input-field ${errors.quantity ? "error" : ""}`}
+          placeholder="Introduzca la cantidad"
+          min="0"
+          step="any"
+        />
+        {errors.quantity && <span className="error-message">{errors.quantity}</span>}
+      </div>
+
+      <div className="form-group">
+        <label className="card-label">Imágenes</label>
+        <div className="image-container">
+          {presentationImages.map((image, index) => (
+            <div key={index} className="image-circle">
+              <label htmlFor={`presentation-image-${index}`} className="image-upload-label">
+                {image.previewUrl ? (
+                  <img
+                    src={image.previewUrl}
+                    alt={`Presentation ${index + 1}`}
+                    className="image-preview"
+                  />
+                ) : (
+                  <span className="plus-sign">+</span>
+                )}
+              </label>
+              <input
+                type="file"
+                id={`presentation-image-${index}`}
+                className="image-upload-input"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, index)}
+              />
+            </div>
+          ))}
         </div>
+        {errors.images && <span className="error-message">{errors.images}</span>}
+      </div>
 
-        <div className="form-group">
-          <label htmlFor="quantity" className="card-label">
-            Cantidad:
-          </label>
-          <input
-            type="number"
-            id="quantity"
-            className="input-field"
-            value={quantity}
-            onChange={(event) => setQuantity(event.target.value)}
-            required
-            min="0"
-            step="any"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="card-label">Imágenes</label>
-          <div className="image-container">
-            {presentationImages.map((imageObj, index) => (
-              <div key={index} className="image-circle">
-                <label
-                  htmlFor={`presentation-image-${index}`}
-                  className="image-upload-label"
-                >
-                  {imageObj.previewUrl ? (
-                    <img
-                      src={imageObj.previewUrl}
-                      alt={`Presentation ${index + 1}`}
-                      className="image-preview"
-                    />
-                  ) : (
-                    <span className="plus-sign">+</span>
-                  )}
-                </label>
-                <input
-                  type="file"
-                  id={`presentation-image-${index}`}
-                  className="image-upload-input"
-                  accept="image/*"
-                  onChange={(event) => handleImageUpload(event, index)}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group">
-          <button type="submit" className="submit-button">
-            Añadir presentación
-          </button>
-        </div>
-
-        {message && (
-          <p
-            className={
-              messageType === "success" ? "success-message" : "error-message"
-            }
-          >
-            {message}
-          </p>
-        )}
-      </form>
-    </div>
+      <div className="form-group">
+        <button type="submit" className="submit-button" disabled={loading}>
+          {loading ? "Creando..." : "Añadir presentación"}
+        </button>
+      </div>
+    </form>
   );
 };
 

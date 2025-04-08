@@ -7,7 +7,7 @@ const Products = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("https://oregonchem-backend.onrender.com/api/public/productos")
+    fetch("http://localhost:5001/api/public/productos")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");

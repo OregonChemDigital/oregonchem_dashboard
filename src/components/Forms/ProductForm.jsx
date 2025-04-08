@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from '../../contexts/authContext';
 import "./Forms.css";
 
-const ProductForm = () => {
+const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess }) => {
   const { currentUser } = useAuth();
   const [presentations, setPresentations] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [filteredPresentations, setFilteredPresentations] = useState([]);
   const [selectedPresentations, setSelectedPresentations] = useState([]);
   const [presentationType, setPresentationType] = useState("solido");
-  const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [descriptions, setDescriptions] = useState(Array(5).fill(""));
   const [uses, setUses] = useState(Array(5).fill(""));
@@ -18,39 +18,73 @@ const ProductForm = () => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setMessage("");
+        setErrors({});
+
         const [presentationsRes, categoriesRes] = await Promise.all([
-          fetch("https://oregonchem-backend.onrender.com/api/public/presentaciones"),
-          fetch("https://oregonchem-backend.onrender.com/api/public/categorias"),
+          fetch("http://localhost:5001/api/public/presentaciones"),
+          fetch("http://localhost:5001/api/public/categorias"),
         ]);
-        setPresentations(await presentationsRes.json());
-        setCategories(await categoriesRes.json());
+
+        if (!presentationsRes.ok || !categoriesRes.ok) {
+          throw new Error('Failed to fetch required data');
+        }
+
+        const [presentationsData, categoriesData] = await Promise.all([
+          presentationsRes.json(),
+          categoriesRes.json()
+        ]);
+
+        setPresentations(propsPresentations || presentationsData.data || []);
+        setCategories(propsCategories || categoriesData.data || []);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        setMessage("Error loading presentations and categories");
+        setMessageType("error");
+        setErrors({ fetch: error.message });
+      } finally {
+        setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    if (!propsPresentations || !propsCategories) {
+      fetchData();
+    } else {
+      setPresentations(propsPresentations);
+      setCategories(propsCategories);
+      setLoading(false);
+    }
+  }, [propsPresentations, propsCategories]);
 
   useEffect(() => {
-    setFilteredPresentations(
-      presentations.filter((presentation) => presentation.type === presentationType)
-    );
+    if (presentations) {
+      setFilteredPresentations(
+        presentations.filter((presentation) => presentation.type === presentationType)
+      );
+    }
   }, [presentationType, presentations]);
 
   const handleImageUpload = (event, index) => {
     const file = event.target.files[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setProductImages((prev) => {
-        const updated = [...prev];
-        updated[index] = { file, previewUrl };
-        return updated;
-      });
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setMessage("Please upload an image file");
+      setMessageType("error");
+      return;
     }
+
+    const previewUrl = URL.createObjectURL(file);
+    setProductImages((prev) => {
+      const updated = [...prev];
+      updated[index] = { file, previewUrl };
+      return updated;
+    });
   };
 
   const toggleSelection = (array, setArray, itemId) => {
@@ -67,37 +101,48 @@ const ProductForm = () => {
     });
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (selectedPresentations.length === 0) {
+      newErrors.presentations = "Please select at least one presentation";
+    }
+    
+    if (selectedCategories.length === 0) {
+      newErrors.categories = "Please select at least one category";
+    }
+    
+    if (!descriptions.some(desc => desc.trim())) {
+      newErrors.descriptions = "Please add at least one description";
+    }
+    
+    if (!uses.some(use => use.trim())) {
+      newErrors.uses = "Please add at least one use";
+    }
+    
+    if (!productImages.some(img => img.file)) {
+      newErrors.images = "Please upload at least one image";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let newErrors = {};
-    const productName = document.getElementById("product-name").value;
-
-    // Validation checks
-    if (!productName) newErrors.productName = "Product name is required";
-    if (selectedPresentations.length === 0) newErrors.presentations = "At least one presentation must be selected";
-    if (selectedCategories.length === 0) newErrors.categories = "At least one category must be selected";
-
-    descriptions.forEach((description, index) => {
-      if (!description) newErrors[`description${index}`] = `Description ${index + 1} is required`;
-    });
-
-    uses.forEach((use, index) => {
-      if (!use) newErrors[`use${index}`] = `Use ${index + 1} is required`;
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    
+    if (!validateForm()) {
+      setMessage("Please fix the errors in the form");
+      setMessageType("error");
       return;
     }
 
     try {
-      if (!currentUser) {
-        setMessage("You need to be logged in to submit a product.");
-        return;
-      }
-
-      const token = await currentUser.getIdToken();
+      setLoading(true);
+      setMessage("");
+      
       const formData = new FormData();
+      const productName = document.getElementById("product-name").value;
       formData.append("name", productName);
       selectedPresentations.forEach(p => formData.append("presentations[]", p));
       selectedCategories.forEach(c => formData.append("categories[]", c));
@@ -114,16 +159,17 @@ const ProductForm = () => {
       // Append images
       productImages.forEach((imageObj, index) => {
         if (imageObj.file) {
-          formData.append(`images[site${index + 1}]`, imageObj.file); // Ensure this matches the keys expected by multer
+          formData.append(`images[site${index + 1}]`, imageObj.file);
         }
       });
 
-      // Optional: Log the form data entries for debugging
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
+      if (!currentUser) {
+        setMessage("You need to be logged in to submit a product.");
+        return;
       }
 
-      const response = await fetch("https://oregonchem-backend.onrender.com/api/productos/nuevo", {
+      const token = await currentUser.getIdToken();
+      const response = await fetch("http://localhost:5001/api/productos/nuevo", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -147,12 +193,20 @@ const ProductForm = () => {
       setSelectedCategories([]);
       setErrors({});
       setMessage("Product added successfully!");
+      setMessageType("success");
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error submitting form", error);
       setMessage(`Error adding product: ${error.message}`);
+      setMessageType("error");
+    } finally {
+      setLoading(false);
     }
   };
-
 
   return (
     <div className="form-container">
@@ -197,7 +251,7 @@ const ProductForm = () => {
                   }
                 />
                 <label htmlFor={`presentation-${presentation._id}`}>
-                  {presentation.name} ({presentation.quantity} {presentation.measure})
+                  {presentation.name}
                 </label>
               </div>
             ))}
@@ -207,7 +261,7 @@ const ProductForm = () => {
         <div className="form-group">
           <label className="card-label">Categorías</label>
           <div className="categories-body">
-            {categories.map((category) => (
+            {categories && categories.map((category) => (
               <div key={category._id} className="checkbox-item">
                 <input
                   type="checkbox"
@@ -232,19 +286,14 @@ const ProductForm = () => {
         <div className="form-group">
           <label className="card-label">Descripciones</label>
           {descriptions.map((description, index) => (
-            <textarea
+            <input
               key={index}
               value={description}
               onChange={(e) =>
-                handleArrayChange(
-                  descriptions,
-                  setDescriptions,
-                  index,
-                  e.target.value
-                )
+                handleArrayChange(descriptions, setDescriptions, index, e.target.value)
               }
               placeholder={`Descripción ${index + 1}`}
-              className="textarea-field"
+              className="input-field"
             />
           ))}
           {descriptions.map((_, index) =>
@@ -308,11 +357,7 @@ const ProductForm = () => {
           </button>
         </div>
         {message && (
-          <p
-            className={
-              messageType === "success" ? "success-message" : "error-message"
-            }
-          >
+          <p className={messageType === "success" ? "success-message" : "error-message"}>
             {message}
           </p>
         )}

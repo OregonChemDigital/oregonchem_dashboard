@@ -1,4 +1,4 @@
-:root {
+/* :root {
     --primary-color: #003F88;
     --secondary-color: #192A43;
     --text-color: white;
@@ -22,7 +22,7 @@
   
   .nav__menu {
     display: flex;
-    align-items: center; /* This will ensure everything aligns centrally on the y-axis */
+    align-items: center;
   }
   
   .nav__list {
@@ -31,7 +31,7 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    align-items: center; /* Ensures list items are aligned centrally */
+    align-items: center;
   }
   
   .nav__item .nav__link {
@@ -41,12 +41,10 @@
     transition: color 0.3s ease;
   }
   
-  /* Hover effect for all nav links including the logout button */
   .nav__item .nav__link:hover {
     color: #d68e00;
   }
   
-  /* Logout button specific styles */
   .nav__item .logout {
     width: 100px;
     height: 40px;
@@ -83,14 +81,12 @@
     color: white;
   }
   
-  /* Tablet adjustments */
   @media (max-width: 1024px) {
     .nav__list {
       gap: 1rem;
     }
   }
   
-  /* Mobile adjustments */
   @media (max-width: 768px) {
     .nav__menu {
       position: absolute;
@@ -127,10 +123,9 @@
       display: block;
     }
   
-    /* Centering the logout button in the mobile view */
     .nav__item .logout {
       padding: 0.5rem 2rem;
       text-align: center;
       width: 100%;
     }
-  }
+  } */

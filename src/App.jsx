@@ -1,17 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "./contexts/authContext";
-import Routes from "./routes/routes";
-import Navbar from "./components/Navbar/Navbar";
-import Header from "./components/Header";
+import AppRoutes from "./routes/routes"; // Ensure correct import
+import CombinedAnalyticsDashboard from './components/CombinedAnalyticsDashboard';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="App">
-          <Routes />
-        </div>
+        <AppRoutes />
       </AuthProvider>
     </Router>
   );
