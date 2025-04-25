@@ -10,8 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "postinstall": "npm run build"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -27,7 +26,7 @@
     "react-icons": "^5.0.1",
     "react-responsive": "^9.0.2",
     "react-router-dom": "^6.22.1",
-    "vite": "^5.1.3"
+    "vite": "^6.3.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
