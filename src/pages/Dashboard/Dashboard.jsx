@@ -5,7 +5,7 @@ import PresentationForm from "../../components/Forms/PresentationForm";
 import CategoryForm from "../../components/Forms/CategoryForm";
 import BannerForm from "../../components/Forms/BannerForm";
 import ProductForm from "../../components/Forms/ProductForm";
-import "./dashboard.css";
+import "../../styles/Layout.css";
 
 const Dashboard = () => {
     const [user, setUser] = useState(null);
@@ -37,8 +37,8 @@ const Dashboard = () => {
             setError(null);
             
             const [presentationsResponse, categoriesResponse] = await Promise.all([
-                fetch('http://localhost:5001/api/public/presentaciones'),
-                fetch('http://localhost:5001/api/public/categorias')
+                fetch(`${import.meta.env.VITE_API_URL}/api/public/presentaciones`),
+                fetch(`${import.meta.env.VITE_API_URL}/api/public/categorias`)
             ]);
 
             if (!presentationsResponse.ok || !categoriesResponse.ok) {
