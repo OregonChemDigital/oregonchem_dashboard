@@ -9,5 +9,34 @@ services:
         value: production
       - key: VITE_API_URL
         value: https://oregonchem-backend.onrender.com
+      - key: VITE_FIREBASE_API_KEY
+        value: AIzaSyB8QJ8QJ8QJ8QJ8QJ8QJ8QJ8QJ8QJ8QJ8Q
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        value: oregonchem-pe.firebaseapp.com
+      - key: VITE_FIREBASE_PROJECT_ID
+        value: oregonchem-pe
+      - key: VITE_GOOGLE_CLOUD_STORAGE_BUCKET
+        value: oregonchem-pe.appspot.com
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        value: 123456789012
+      - key: VITE_FIREBASE_APP_ID
+        value: 1:123456789012:web:abcdef1234567890
+      - key: VITE_APP_NAME
+        value: OregonChem Dashboard
+      - key: VITE_APP_VERSION
+        value: 1.0.0
     healthCheckPath: /
-    autoDeploy: true 
+    autoDeploy: true
+    buildFilter:
+      branches:
+        only:
+          - main
+    env:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: NPM_VERSION
+        value: 9.6.7
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 50 

@@ -67,4 +67,15 @@ const App = () => {
   );
 };
 
+// Health check endpoint
+export const healthCheck = () => {
+  return {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: import.meta.env.NODE_ENV,
+    version: import.meta.env.VITE_APP_VERSION,
+    name: import.meta.env.VITE_APP_NAME
+  };
+};
+
 export default App;

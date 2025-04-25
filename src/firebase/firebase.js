@@ -30,7 +30,7 @@ const initializeAnalytics = async () => {
         }
     } catch (error) {
         // Only log errors in development
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
             console.warn('Analytics initialization error:', error);
         }
     }
@@ -38,7 +38,7 @@ const initializeAnalytics = async () => {
 
 // Initialize analytics asynchronously
 initializeAnalytics().catch(error => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
         console.warn('Failed to initialize analytics:', error);
     }
 });
@@ -47,8 +47,8 @@ initializeAnalytics().catch(error => {
 if (typeof window !== 'undefined') {
     window.addEventListener('online', () => {
         initializeAnalytics().catch(error => {
-            if (process.env.NODE_ENV === 'development') {
-                console.warn('Failed to initialize analytics after coming online:', error);
+            if (import.meta.env.DEV) {
+                console.warn('Failed to initialize analytics:', error);
             }
         });
     });
