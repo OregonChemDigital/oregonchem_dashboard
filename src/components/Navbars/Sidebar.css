@@ -4,7 +4,7 @@
   left: 0;
   width: 250px;
   height: 100vh;
-  background: #20232a;
+  background: #1e3c72 !important;
   color: white;
   transition: width 0.3s ease;
   overflow-y: auto;
@@ -19,6 +19,7 @@
   align-items: center;
   justify-content: center;
   padding: 15px;
+  background: #152a4a !important;
 }
 
 .sidebar__logo img {
@@ -34,19 +35,37 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  background: #1e3c72 !important;
 }
 
 .sidebar__menu li {
-  padding: 15px;
+  padding: 0;
+  background: #1e3c72 !important;
 }
 
 .sidebar__link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  text-decoration: none;
+  padding: 12px 16px;
   color: white;
-  font-size: 16px;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  background: #1e3c72 !important;
+  margin-left: 0;
+}
+
+.sidebar__link:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar__link svg {
+  margin-right: 12px;
+  min-width: 20px;
+  color: white;
+}
+
+.sidebar__link span {
+  margin-left: 0;
 }
 
 .sidebar.collapsed .sidebar__link {
@@ -57,8 +76,54 @@
   display: none;
 }
 
-.sidebar__link:hover {
-  background: rgba(255, 255, 255, 0.1);
+.sidebar__dropdown {
+  position: relative;
+  background: #1e3c72 !important;
+}
+
+.sidebar__dropdown .sidebar__link {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  background: #1e3c72 !important;
+}
+
+.sidebar__dropdown .sidebar__link svg:last-child {
+  margin-left: auto;
+}
+
+.sidebar__submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: #1e3c72 !important;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.sidebar__submenu li {
+  padding: 0;
+  background: #1e3c72 !important;
+}
+
+.sidebar__sublink {
+  display: block;
+  padding: 8px 16px;
+  color: white;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  margin-left: 16px;
+  background: #1e3c72 !important;
+}
+
+.sidebar__sublink:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar__sublink.active {
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
   

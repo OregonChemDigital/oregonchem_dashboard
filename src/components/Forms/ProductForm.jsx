@@ -3,19 +3,19 @@ import { useAuth } from '../../contexts/authContext';
 import { useLoading } from '../../contexts/loadingContext';
 import "./Forms.css";
 
-const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess }) => {
+const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess, initialData, onSubmit, submitButtonText = "Añadir producto", isQuimicaIndustrial = false }) => {
   const { currentUser } = useAuth();
   const { showLoading, hideLoading, showSuccess } = useLoading();
   const [presentations, setPresentations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filteredPresentations, setFilteredPresentations] = useState([]);
-  const [selectedPresentations, setSelectedPresentations] = useState([]);
+  const [selectedPresentations, setSelectedPresentations] = useState(initialData?.presentations || []);
   const [presentationType, setPresentationType] = useState("solido");
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [descriptions, setDescriptions] = useState(Array(5).fill(""));
-  const [uses, setUses] = useState(Array(5).fill(""));
+  const [selectedCategories, setSelectedCategories] = useState(initialData?.categories || []);
+  const [descriptions, setDescriptions] = useState(initialData?.descriptions ? Object.values(initialData.descriptions) : Array(5).fill(""));
+  const [uses, setUses] = useState(initialData?.uses ? Object.values(initialData.uses) : Array(5).fill(""));
   const [productImages, setProductImages] = useState(
-    Array(5).fill({ file: null, previewUrl: null })
+    initialData?.images ? Object.entries(initialData.images).map(([_, url]) => ({ file: null, previewUrl: url })) : Array(5).fill({ file: null, previewUrl: null })
   );
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -197,7 +197,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
 
   return (
     <div className="form-container">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit || handleSubmit}>
         <div className="form-group">
           <label htmlFor="product-name" className="card-label">
             Nombre
@@ -207,6 +207,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
             id="product-name"
             placeholder="Ingresar nombre"
             className="input-field"
+            defaultValue={initialData?.name}
           />
           {errors.productName && <span className="error-message">{errors.productName}</span>}
         </div>
@@ -228,6 +229,8 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
                 <input
                   type="checkbox"
                   id={`presentation-${presentation._id}`}
+                  name="presentations"
+                  value={presentation._id}
                   checked={selectedPresentations.includes(presentation._id)}
                   onChange={() =>
                     toggleSelection(
@@ -253,6 +256,8 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
                 <input
                   type="checkbox"
                   id={`category-${category._id}`}
+                  name="categories"
+                  value={category._id}
                   checked={selectedCategories.includes(category._id)}
                   onChange={() =>
                     toggleSelection(
@@ -272,17 +277,30 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         </div>
         <div className="form-group">
           <label className="card-label">Descripciones</label>
-          {descriptions.map((description, index) => (
+          {isQuimicaIndustrial ? (
             <input
-              key={index}
-              value={description}
+              id="description-1"
+              value={descriptions[0] || ""}
               onChange={(e) =>
-                handleArrayChange(descriptions, setDescriptions, index, e.target.value)
+                handleArrayChange(descriptions, setDescriptions, 0, e.target.value)
               }
-              placeholder={`Descripción ${index + 1}`}
+              placeholder="Descripción Química Industrial"
               className="input-field"
             />
-          ))}
+          ) : (
+            descriptions.map((description, index) => (
+              <input
+                key={index}
+                id={`description-${index + 1}`}
+                value={description}
+                onChange={(e) =>
+                  handleArrayChange(descriptions, setDescriptions, index, e.target.value)
+                }
+                placeholder={`Descripción ${index + 1}`}
+                className="input-field"
+              />
+            ))
+          )}
           {descriptions.map((_, index) =>
             errors[`description${index}`] && (
               <span key={index} className="error-message">{errors[`description${index}`]}</span>
@@ -291,17 +309,30 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         </div>
         <div className="form-group">
           <label className="card-label">Usos</label>
-          {uses.map((use, index) => (
+          {isQuimicaIndustrial ? (
             <input
-              key={index}
-              value={use}
+              id="use-1"
+              value={uses[0] || ""}
               onChange={(e) =>
-                handleArrayChange(uses, setUses, index, e.target.value)
+                handleArrayChange(uses, setUses, 0, e.target.value)
               }
-              placeholder={`Uso ${index + 1}`}
+              placeholder="Usos Química Industrial"
               className="input-field"
             />
-          ))}
+          ) : (
+            uses.map((use, index) => (
+              <input
+                key={index}
+                id={`use-${index + 1}`}
+                value={use}
+                onChange={(e) =>
+                  handleArrayChange(uses, setUses, index, e.target.value)
+                }
+                placeholder={`Uso ${index + 1}`}
+                className="input-field"
+              />
+            ))
+          )}
           {uses.map((_, index) =>
             errors[`use${index}`] && (
               <span key={index} className="error-message">{errors[`use${index}`]}</span>
@@ -311,16 +342,16 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         <div className="form-group">
           <label className="card-label">Imágenes</label>
           <div className="image-container">
-            {productImages.map((imageObj, index) => (
-              <div key={index} className="image-circle">
+            {isQuimicaIndustrial ? (
+              <div className="image-circle">
                 <label
-                  htmlFor={`product-image-${index}`}
+                  htmlFor="product-image-0"
                   className="image-upload-label"
                 >
-                  {imageObj.previewUrl ? (
+                  {productImages[0]?.previewUrl ? (
                     <img
-                      src={imageObj.previewUrl}
-                      alt={`Product ${index + 1}`}
+                      src={productImages[0].previewUrl}
+                      alt="Product Química Industrial"
                       className="image-preview"
                     />
                   ) : (
@@ -329,18 +360,44 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
                 </label>
                 <input
                   type="file"
-                  id={`product-image-${index}`}
+                  id="product-image-0"
                   className="image-upload-input"
                   accept="image/*"
-                  onChange={(event) => handleImageUpload(event, index)}
+                  onChange={(event) => handleImageUpload(event, 0)}
                 />
               </div>
-            ))}
+            ) : (
+              productImages.map((imageObj, index) => (
+                <div key={index} className="image-circle">
+                  <label
+                    htmlFor={`product-image-${index}`}
+                    className="image-upload-label"
+                  >
+                    {imageObj.previewUrl ? (
+                      <img
+                        src={imageObj.previewUrl}
+                        alt={`Product ${index + 1}`}
+                        className="image-preview"
+                      />
+                    ) : (
+                      <span className="plus-sign">+</span>
+                    )}
+                  </label>
+                  <input
+                    type="file"
+                    id={`product-image-${index}`}
+                    className="image-upload-input"
+                    accept="image/*"
+                    onChange={(event) => handleImageUpload(event, index)}
+                  />
+                </div>
+              ))
+            )}
           </div>
         </div>
         <div className="form-group">
           <button type="submit" className="submit-button">
-            Añadir producto
+            {submitButtonText}
           </button>
         </div>
       </form>

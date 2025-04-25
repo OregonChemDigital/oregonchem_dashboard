@@ -1,0 +1,14 @@
+.create-category-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.create-category-container h1 {
+    color: #1e3c72;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #1e3c72;
+    display: inline-block;
+} 

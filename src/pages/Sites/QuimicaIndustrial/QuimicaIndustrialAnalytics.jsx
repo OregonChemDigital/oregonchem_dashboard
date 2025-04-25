@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import '../../styles/QuimicaIndustrial.css';
+import './QuimicaIndustrialAnalytics.css';
 import { logEvent } from 'firebase/analytics';
-import { analytics } from '../../firebase/firebase';
-import { useAuth } from '../../contexts/authContext';
-import AnalyticsWidget from '../../components/widgets/AnalyticsWidget';
+import { analytics } from '../../../firebase/firebase';
+import { useAuth } from '../../../contexts/authContext';
+import AnalyticsWidget from '../../../components/widgets/AnalyticsWidget';
 
 const QuimicaIndustrial = () => {
     const [analyticsData, setAnalyticsData] = useState(null);

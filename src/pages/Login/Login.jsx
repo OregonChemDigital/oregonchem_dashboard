@@ -61,41 +61,45 @@ const Login = () => {
             <div className="login_container">
                 <img className="login_logo" src={logo} alt="Oregon Chem Logo" />
 
-                <div className="login_input_container">
-                    <img className="login_icon" src={emailIcon} alt="Email Icon" />
-                    <div className="login_input_wrapper">
-                        <div className="login_separator"></div>
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            className="login_input_field"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
+                <form onSubmit={handleLogin}>
+                    <div className="login_input_container">
+                        <img className="login_icon" src={emailIcon} alt="Email Icon" />
+                        <div className="login_input_wrapper">
+                            <div className="login_separator"></div>
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                className="login_input_field"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <div className="login_input_container">
-                    <img className="login_icon" src={passwordIcon} alt="Password Icon" />
-                    <div className="login_input_wrapper">
-                        <div className="login_separator"></div>
-                        <input
-                            type="password"
-                            placeholder="Contraseña"
-                            className="login_input_field"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                    <div className="login_input_container">
+                        <img className="login_icon" src={passwordIcon} alt="Password Icon" />
+                        <div className="login_input_wrapper">
+                            <div className="login_separator"></div>
+                            <input
+                                type="password"
+                                placeholder="Contraseña"
+                                className="login_input_field"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <button
-                    className="login_button"
-                    onClick={handleLogin}
-                    disabled={loading}
-                >
-                    {loading ? "Cargando..." : "Login"}
-                </button>
+                    <button
+                        type="submit"
+                        className="login_button"
+                        disabled={loading}
+                    >
+                        {loading ? "Cargando..." : "Login"}
+                    </button>
+                </form>
 
                 {error && <p className="error-message">{error}</p>}
 
