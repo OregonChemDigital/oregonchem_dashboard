@@ -15,31 +15,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    commonjsOptions: {
-      include: [/node_modules/],
-      extensions: ['.js', '.cjs'],
-      strictRequires: true,
-      transformMixedEsModules: true
-    },
     rollupOptions: {
-      external: ['firebase/app', 'firebase/auth', 'firebase/analytics'],
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/analytics'],
-          mui: ['@mui/material', '@emotion/react', '@emotion/styled']
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/analytics'],
+          'mui': ['@mui/material', '@emotion/react', '@emotion/styled'],
+          'charts': ['chart.js', 'react-chartjs-2']
         }
       }
-    }
-  },
-  optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth', 'firebase/analytics']
-  },
-  define: {
-    'process.env': {
-      NODE_ENV: process.env.NODE_ENV,
-      VITE_APP_NAME: JSON.stringify(process.env.VITE_APP_NAME),
-      VITE_APP_VERSION: JSON.stringify(process.env.VITE_APP_VERSION)
-    }
+    },
+    chunkSizeWarningLimit: 1000
   }
 })
+
