@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: oregonchem-dashboard
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_API_URL
+        value: https://oregonchem-backend.onrender.com
+    healthCheckPath: /
+    autoDeploy: true 
