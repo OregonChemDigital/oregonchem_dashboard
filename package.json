@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "serve -s dist -l 10000"
+    "start": "node server.js",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -18,6 +19,8 @@
     "@mui/material": "^5.15.10",
     "@vitejs/plugin-react": "^4.2.1",
     "chart.js": "^4.4.1",
+    "compression": "^1.8.0",
+    "express": "^4.21.2",
     "firebase": "^10.8.0",
     "googleapis": "^129.0.0",
     "react": "^18.2.0",
@@ -26,7 +29,6 @@
     "react-icons": "^5.0.1",
     "react-responsive": "^9.0.2",
     "react-router-dom": "^6.22.1",
-    "serve": "^14.2.4",
     "vite": "^6.3.3"
   },
   "devDependencies": {
