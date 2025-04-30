@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from '../../contexts/authContext';
 import { useLoading } from '../../contexts/loadingContext';
+import { API_ENDPOINTS } from '../../utils/api';
 import "./Forms.css";
 
 const CategoryForm = ({ onCategoryAdded, onClose }) => {
@@ -72,7 +73,7 @@ const CategoryForm = ({ onCategoryAdded, onClose }) => {
         }
       });
 
-      const response = await fetch("http://localhost:5001/api/categorias/nueva", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.NEW_CATEGORY}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

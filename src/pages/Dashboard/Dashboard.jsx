@@ -5,6 +5,7 @@ import PresentationForm from "../../components/Forms/PresentationForm";
 import CategoryForm from "../../components/Forms/CategoryForm";
 import BannerForm from "../../components/Forms/BannerForm";
 import ProductForm from "../../components/Forms/ProductForm";
+import { fetchWithCache, API_ENDPOINTS, clearCache } from "../../utils/api";
 import "../../styles/Layout.css";
 
 const Dashboard = () => {
@@ -30,28 +31,19 @@ const Dashboard = () => {
         }
     }, [user]);
 
-    const fetchContent = async () => {
+    const fetchContent = async (force = false) => {
         try {
             setLoading(true);
             setIsProductFormReady(false);
             setError(null);
             
-            const [presentationsResponse, categoriesResponse] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/api/public/presentaciones`),
-                fetch(`${import.meta.env.VITE_API_URL}/api/public/categorias`)
-            ]);
-
-            if (!presentationsResponse.ok || !categoriesResponse.ok) {
-                throw new Error('Failed to fetch content data');
-            }
-
             const [presentationsData, categoriesData] = await Promise.all([
-                presentationsResponse.json(),
-                categoriesResponse.json()
+                fetchWithCache(API_ENDPOINTS.PRESENTATIONS, {}, force),
+                fetchWithCache(API_ENDPOINTS.CATEGORIES, {}, force)
             ]);
 
-            const presentationsList = presentationsData.data || [];
-            const categoriesList = categoriesData.data || [];
+            const presentationsList = presentationsData?.data || [];
+            const categoriesList = categoriesData?.data || [];
 
             setPresentations(presentationsList);
             setCategories(categoriesList);
@@ -65,7 +57,8 @@ const Dashboard = () => {
     };
 
     const handleContentUpdate = () => {
-        fetchContent();
+        clearCache(); // Clear cache to force fresh data
+        fetchContent(true);
     };
 
     if (!user) {

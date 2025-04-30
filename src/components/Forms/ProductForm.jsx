@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../../contexts/authContext';
 import { useLoading } from '../../contexts/loadingContext';
+import { fetchWithCache, API_ENDPOINTS } from '../../utils/api';
 import "./Forms.css";
 
 const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess, initialData, onSubmit, submitButtonText = "Añadir producto", isQuimicaIndustrial = false }) => {
@@ -26,22 +27,13 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         showLoading();
         setErrors({});
 
-        const [presentationsRes, categoriesRes] = await Promise.all([
-          fetch("http://localhost:5001/api/public/presentaciones"),
-          fetch("http://localhost:5001/api/public/categorias"),
-        ]);
-
-        if (!presentationsRes.ok || !categoriesRes.ok) {
-          throw new Error('Failed to fetch required data');
-        }
-
         const [presentationsData, categoriesData] = await Promise.all([
-          presentationsRes.json(),
-          categoriesRes.json()
+          fetchWithCache(API_ENDPOINTS.PRESENTATIONS),
+          fetchWithCache(API_ENDPOINTS.CATEGORIES)
         ]);
 
-        setPresentations(propsPresentations || presentationsData.data || []);
-        setCategories(propsCategories || categoriesData.data || []);
+        setPresentations(propsPresentations || presentationsData?.data || []);
+        setCategories(propsCategories || categoriesData?.data || []);
       } catch (error) {
         setErrors({ fetch: error.message });
       } finally {
@@ -160,7 +152,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         }
       });
 
-      const response = await fetch("http://localhost:5001/api/productos/nuevo", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.NEW_PRODUCT}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

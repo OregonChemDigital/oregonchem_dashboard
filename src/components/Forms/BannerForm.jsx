@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../../contexts/authContext';
 import { useLoading } from '../../contexts/loadingContext';
+import { API_ENDPOINTS } from '../../utils/api';
 import "./Forms.css";
 
 const BannerForm = () => {
@@ -76,7 +77,7 @@ const BannerForm = () => {
       formData.append("site", site);
       formData.append("image", bannerImage.file);
 
-      const response = await fetch("http://localhost:5001/api/banners/nuevo", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.NEW_BANNER}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
