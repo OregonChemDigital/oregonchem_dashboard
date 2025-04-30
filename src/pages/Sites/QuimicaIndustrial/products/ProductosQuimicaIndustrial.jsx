@@ -118,7 +118,7 @@ const QuimicaIndustrialProducts = () => {
     const handleProductDelete = async (product) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/productos/${product._id}`, {
+                const response = await fetch(`${ENDPOINTS.PRODUCTS}/${product._id}`, {
                     method: 'DELETE',
                 });
                 

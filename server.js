@@ -34,6 +34,7 @@ app.use((req, res, next) => {
         "connect-src 'self' https://oregonchem-backend.onrender.com https://*.firebase.com https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://www.google-analytics.com; " +
         "frame-ancestors 'none';"
     );
+    res.setHeader('Set-Cookie', 'SameSite=None; Secure');
     next();
 });
 

@@ -76,7 +76,7 @@ const BannerList = () => {
     const handleBannerDelete = async (banner) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este banner?')) {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/banners/${banner._id}`, {
+                const response = await fetch(`${ENDPOINTS.BANNERS}/${banner._id}`, {
                     method: 'DELETE',
                 });
                 if (!response.ok) {

@@ -75,7 +75,7 @@ const CategoryList = () => {
     const handleCategoryDelete = async (category) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar esta categoría?')) {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/categorias/${category._id}`, {
+                const response = await fetch(`${ENDPOINTS.CATEGORIES}/${category._id}`, {
                     method: 'DELETE',
                 });
                 if (!response.ok) {

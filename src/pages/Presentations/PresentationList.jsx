@@ -77,7 +77,7 @@ const PresentationList = () => {
     const handlePresentationDelete = async (presentation) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar esta presentación?')) {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/presentaciones/${presentation._id}`, {
+                const response = await fetch(`${ENDPOINTS.PRESENTATIONS}/${presentation._id}`, {
                     method: 'DELETE',
                 });
                 if (!response.ok) {
