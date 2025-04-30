@@ -1,6 +1,9 @@
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 const MIN_FETCH_INTERVAL = 30 * 1000; // 30 seconds minimum between fetches
 
+// API URL configuration
+const API_URL = import.meta.env.VITE_API_URL || 'https://oregonchem-backend.onrender.com';
+
 class APICache {
     constructor() {
         this.cache = new Map();
@@ -50,7 +53,7 @@ class APICache {
 const apiCache = new APICache();
 
 export const fetchWithCache = async (endpoint, options = {}, force = false) => {
-    const url = `${import.meta.env.VITE_API_URL}${endpoint}`;
+    const url = `${API_URL}${endpoint}`;
     
     // Check cache first
     if (!force) {
@@ -71,7 +74,8 @@ export const fetchWithCache = async (endpoint, options = {}, force = false) => {
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers
-            }
+            },
+            credentials: 'include' // Important for CORS with credentials
         });
 
         if (!response.ok) {
@@ -98,11 +102,9 @@ export const clearCache = () => {
 // Common API endpoints
 export const API_ENDPOINTS = {
     PRESENTATIONS: '/api/public/presentaciones',
-    CATEGORIES: '/api/public/categorias',
     PRODUCTS: '/api/public/productos',
+    CATEGORIES: '/api/public/categorias',
     BANNERS: '/api/public/banners',
-    NEW_PRESENTATION: '/api/presentaciones/nueva',
-    NEW_CATEGORY: '/api/categorias/nueva',
-    NEW_PRODUCT: '/api/productos/nuevo',
-    NEW_BANNER: '/api/banners/nuevo'
+    QUOTES: '/api/public/quotes',
+    ANALYTICS: '/api/analytics'
 }; 
