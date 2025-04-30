@@ -27,11 +27,11 @@ app.use((req, res, next) => {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Content-Security-Policy', 
         "default-src 'self' https://oregonchem-backend.onrender.com; " +
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-        "style-src 'self' 'unsafe-inline'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebase.com https://*.firebaseio.com https://*.googleapis.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
         "img-src 'self' data: https:; " +
-        "font-src 'self' data:; " +
-        "connect-src 'self' https://oregonchem-backend.onrender.com http://localhost:5001; " +
+        "font-src 'self' data: https://fonts.gstatic.com; " +
+        "connect-src 'self' https://oregonchem-backend.onrender.com https://*.firebase.com https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com; " +
         "frame-ancestors 'none';"
     );
     next();
