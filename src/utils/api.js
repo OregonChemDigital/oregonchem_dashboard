@@ -2,7 +2,9 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 const MIN_FETCH_INTERVAL = 30 * 1000; // 30 seconds minimum between fetches
 
 // API URL configuration
-const API_URL = import.meta.env.VITE_API_URL || 'https://oregonchem-backend.onrender.com';
+const API_URL = import.meta.env.PROD 
+    ? 'https://oregonchem-backend.onrender.com'
+    : (import.meta.env.VITE_API_URL || 'https://oregonchem-backend.onrender.com');
 
 class APICache {
     constructor() {
@@ -73,9 +75,11 @@ export const fetchWithCache = async (endpoint, options = {}, force = false) => {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 ...options.headers
             },
-            credentials: 'include' // Important for CORS with credentials
+            credentials: 'include',
+            mode: 'cors'
         });
 
         if (!response.ok) {

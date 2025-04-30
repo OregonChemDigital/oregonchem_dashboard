@@ -2,12 +2,32 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import compression from 'compression';
+import cors from 'cors';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// Enable CORS with specific configuration
+app.use(cors({
+    origin: ['https://oregonchem-dashboard.onrender.com', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
+
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Content-Security-Policy', "default-src 'self' https://oregonchem-backend.onrender.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://oregonchem-backend.onrender.com;");
+    next();
+});
 
 // Enable compression
 app.use(compression());
@@ -21,13 +41,28 @@ app.use((req, res, next) => {
 // Health check endpoint (moved to /health)
 app.get('/health', (req, res) => {
   console.log('Health check requested from:', req.headers.host);
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'production',
-    host: req.headers.host,
-    port: PORT
-  });
+  try {
+    // Verify that the dist directory exists and has the necessary files
+    const indexPath = path.join(__dirname, 'dist', 'index.html');
+    if (!fs.existsSync(indexPath)) {
+      throw new Error('Static files not found');
+    }
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'production',
+      host: req.headers.host,
+      port: PORT,
+      staticFiles: 'available'
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Serve static files from the dist directory
@@ -41,9 +76,21 @@ app.use(express.static(path.join(__dirname, 'dist'), {
   }
 }));
 
-// Handle client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Handle client-side routing with error handling
+app.get('*', (req, res, next) => {
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  if (!fs.existsSync(indexPath)) {
+    return res.status(500).json({
+      error: 'Static files not found',
+      timestamp: new Date().toISOString()
+    });
+  }
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      next(err);
+    }
+  });
 });
 
 // Error handling

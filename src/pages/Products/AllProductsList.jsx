@@ -3,6 +3,8 @@ import GridContainer from '../../components/GridContainer/GridContainer';
 import GridCard from '../../components/GridCard/GridCard';
 import './AllProductsList.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { ENDPOINTS } from '../../config/api';
 
 const AllProductsList = () => {
     const [products, setProducts] = useState([]);
@@ -39,29 +41,28 @@ const AllProductsList = () => {
         setFilteredProducts(sortProducts(filtered, sortOption));
     };
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await fetch('http://localhost:5001/api/public/productos');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch products');
-                }
-                const data = await response.json();
-                // Add type property to each product
-                const productsWithType = (data.data || []).map(product => ({
-                    ...product,
-                    type: 'product'
-                }));
-                const sortedProducts = sortProducts(productsWithType, sortOption);
-                setProducts(sortedProducts);
-                setFilteredProducts(sortedProducts);
-                setLoading(false);
-            } catch (err) {
-                setError(err.message);
-                setLoading(false);
-            }
-        };
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch(ENDPOINTS.PRODUCTS);
+            if (!response.ok) throw new Error('Failed to fetch products');
+            const data = await response.json();
+            // Add type property to each product
+            const productsWithType = (data.data || []).map(product => ({
+                ...product,
+                type: 'product'
+            }));
+            const sortedProducts = sortProducts(productsWithType, sortOption);
+            setProducts(sortedProducts);
+            setFilteredProducts(sortedProducts);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            setError('Failed to load products');
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
     }, [sortOption]);
 
@@ -83,7 +84,7 @@ const AllProductsList = () => {
         console.log('Product Delete:', product);
         if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/productos/${product._id}`, {
+                const response = await fetch(`${ENDPOINTS.PRODUCTS}/${product._id}`, {
                     method: 'DELETE',
                 });
                 
