@@ -18,8 +18,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoints
-app.get(['/', '/health'], (req, res) => {
+// Health check endpoint (moved to /health)
+app.get('/health', (req, res) => {
   console.log('Health check requested from:', req.headers.host);
   res.status(200).json({
     status: 'ok',
@@ -59,7 +59,7 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV || 'production');
-  console.log('Health check available at:', `http://localhost:${PORT}/`);
+  console.log('Health check available at:', `http://localhost:${PORT}/health`);
 });
 
 // Handle server errors
