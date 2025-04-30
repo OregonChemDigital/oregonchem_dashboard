@@ -3,7 +3,7 @@ services:
     name: oregonchem-dashboard
     env: node
     buildCommand: npm ci && npm run build
-    startCommand: npm run preview
+    startCommand: npx serve -s dist -l 10000
     domains:
       - oregonchem.tech
       - www.oregonchem.tech
