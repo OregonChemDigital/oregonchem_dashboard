@@ -20,18 +20,25 @@ app.use((req, res, next) => {
 
 // Health check endpoints
 app.get(['/', '/health'], (req, res) => {
-  console.log('Health check requested');
+  console.log('Health check requested from:', req.headers.host);
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'production'
+    environment: process.env.NODE_ENV || 'production',
+    host: req.headers.host,
+    port: PORT
   });
 });
 
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist'), {
   maxAge: '1y',
-  etag: true
+  etag: true,
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
 }));
 
 // Handle client-side routing
@@ -49,8 +56,23 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV || 'production');
   console.log('Health check available at:', `http://localhost:${PORT}/`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
+
+// Handle process termination
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 }); 

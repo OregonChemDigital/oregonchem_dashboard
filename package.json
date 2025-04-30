@@ -11,7 +11,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "start": "node server.js",
-    "preview": "vite preview"
+    "preview": "node server.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
