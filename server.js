@@ -12,27 +12,45 @@ const PORT = process.env.PORT || 10000;
 // Enable compression
 app.use(compression());
 
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
+// Health check endpoints
+app.get(['/', '/health'], (req, res) => {
+  console.log('Health check requested');
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production'
+  });
+});
+
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist'), {
   maxAge: '1y',
   etag: true
 }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Handle client-side routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    error: err.message,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV || 'production');
+  console.log('Health check available at:', `http://localhost:${PORT}/`);
 }); 
