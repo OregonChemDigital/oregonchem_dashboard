@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "serve -s dist -l 10000"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
