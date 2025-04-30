@@ -3,6 +3,7 @@ import GridCard from '../../../../components/GridCard/GridCard';
 import GridContainer from '../../../../components/GridContainer/GridContainer';
 import { FaTh, FaList, FaSort } from 'react-icons/fa';
 import { useViewMode } from '../../../../contexts/ViewModeContext';
+import { ENDPOINTS } from '../../../../config/api';
 import './ProductosQuimicaIndustrial.css';
 
 const QuimicaIndustrialProducts = () => {
@@ -45,7 +46,7 @@ const QuimicaIndustrialProducts = () => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:5001/api/public/productos');
+                const response = await fetch(ENDPOINTS.PRODUCTS);
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch products');

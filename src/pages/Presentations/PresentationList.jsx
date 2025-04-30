@@ -3,6 +3,7 @@ import GridContainer from '../../components/GridContainer/GridContainer';
 import GridCard from '../../components/GridCard/GridCard';
 import { FaWater, FaCube } from 'react-icons/fa';
 import { useViewMode } from '../../contexts/ViewModeContext';
+import { ENDPOINTS } from '../../config/api';
 import './PresentationList.css';
 
 const PresentationList = () => {
@@ -41,7 +42,7 @@ const PresentationList = () => {
 
     const fetchPresentations = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/public/presentaciones');
+            const response = await fetch(ENDPOINTS.PRESENTATIONS);
             if (!response.ok) {
                 throw new Error('Failed to fetch presentations');
             }

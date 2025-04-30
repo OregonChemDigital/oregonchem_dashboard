@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GridContainer from '../../components/GridContainer/GridContainer';
 import GridCard from '../../components/GridCard/GridCard';
 import { useViewMode } from '../../contexts/ViewModeContext';
+import { ENDPOINTS } from '../../config/api';
 import './BannerList.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
@@ -40,7 +41,7 @@ const BannerList = () => {
 
     const fetchBanners = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/public/banners');
+            const response = await fetch(ENDPOINTS.BANNERS);
             if (!response.ok) {
                 throw new Error('Failed to fetch banners');
             }
