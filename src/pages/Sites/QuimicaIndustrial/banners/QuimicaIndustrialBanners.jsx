@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import GridContainer from '../../../../components/GridContainer/GridContainer';
 import GridCard from '../../../../components/GridCard/GridCard';
 import { useViewMode } from '../../../../contexts/ViewModeContext';
+import API_URL, { ENDPOINTS } from '../../../../config/api';
 import './QuimicaIndustrialBanners.css';
 
 const QuimicaIndustrialBanners = () => {
@@ -39,7 +40,7 @@ const QuimicaIndustrialBanners = () => {
 
     const fetchBanners = async () => {
         try {
-            const response = await fetch('http://localhost:5001/api/public/banners');
+            const response = await fetch(ENDPOINTS.BANNERS);
             if (!response.ok) {
                 throw new Error('Failed to fetch banners');
             }
@@ -78,7 +79,7 @@ const QuimicaIndustrialBanners = () => {
     const handleBannerDelete = async (banner) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este banner?')) {
             try {
-                const response = await fetch(`http://localhost:5001/api/public/banners/${banner._id}`, {
+                const response = await fetch(`${ENDPOINTS.BANNERS}/${banner._id}`, {
                     method: 'DELETE',
                 });
                 if (!response.ok) {
