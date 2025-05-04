@@ -23,7 +23,7 @@ const QuimicaIndustrial = () => {
                 const token = await currentUser.getIdToken();
 
                 // Fetch general analytics data
-                const response = await fetch('http://localhost:5001/api/analytics/quimicaindustrial/overview', {
+                const response = await fetch('https://oregonchem-backend.onrender.com/api/analytics/quimicaindustrial/overview', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -34,7 +34,7 @@ const QuimicaIndustrial = () => {
                 const data = await response.json();
                 
                 // Fetch custom events data
-                const eventsResponse = await fetch('http://localhost:5001/api/analytics/quimicaindustrial/events', {
+                const eventsResponse = await fetch('https://oregonchem-backend.onrender.com/api/analytics/quimicaindustrial/events', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
