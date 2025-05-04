@@ -2,7 +2,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 const MIN_FETCH_INTERVAL = 30 * 1000; // 30 seconds minimum between fetches
 
 // API URL configuration
-const API_URL = import.meta.env.PROD 
+export const API_URL = import.meta.env.PROD 
     ? 'https://oregonchem-backend.onrender.com'
     : (import.meta.env.VITE_API_URL || 'https://oregonchem-backend.onrender.com');
 
