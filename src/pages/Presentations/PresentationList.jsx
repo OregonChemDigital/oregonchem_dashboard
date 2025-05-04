@@ -93,7 +93,7 @@ const PresentationList = () => {
 
     const filteredByType = filteredPresentations.filter(presentation => {
         if (filterType === 'all') return true;
-        return presentation.type?.toLowerCase() === filterType;
+        return presentation.type === filterType;
     });
 
     if (loading) return <div className="loading">Loading...</div>;

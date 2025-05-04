@@ -236,13 +236,25 @@ const ProductPopupCard = ({
                         )}
 
                         <div className="popup-actions">
-                            <button className="edit-button" onClick={handleUpdate}>
+                            <button 
+                                className="edit-button" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpdate(item);
+                                }}
+                                title="Actualizar"
+                            >
                                 <FaEdit />
-                                Editar
                             </button>
-                            <button className="delete-button" onClick={handleDelete}>
+                            <button 
+                                className="delete-button" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(item);
+                                }}
+                                title="Eliminar"
+                            >
                                 <FaTrash />
-                                Eliminar
                             </button>
                         </div>
                     </div>

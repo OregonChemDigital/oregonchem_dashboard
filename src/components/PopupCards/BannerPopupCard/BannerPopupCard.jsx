@@ -77,11 +77,25 @@ const BannerPopupCard = ({ isOpen, onClose, item, title, onUpdate, onDelete }) =
           </div>
         </div>
         <div className="popup-actions">
-          <button className="edit-button" onClick={() => onUpdate(item)}>
-            <FaEdit /> Editar
+          <button 
+            className="edit-button" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdate(item);
+            }}
+            title="Actualizar"
+          >
+            <FaEdit />
           </button>
-          <button className="delete-button" onClick={() => onDelete(item)}>
-            <FaTrash /> Eliminar
+          <button 
+            className="delete-button" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item);
+            }}
+            title="Eliminar"
+          >
+            <FaTrash />
           </button>
         </div>
       </div>

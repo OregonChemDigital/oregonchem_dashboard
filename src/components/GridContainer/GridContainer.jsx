@@ -5,6 +5,7 @@ import ProductPopupCard from '../PopupCards/ProductPopupCard/ProductPopupCard';
 import PresentationPopupCard from '../PopupCards/PresentationPopupCard/PresentationPopupCard';
 import CategoryPopupCard from '../PopupCards/CategoryPopupCard/CategoryPopupCard';
 import BannerPopupCard from '../PopupCards/BannerPopupCard/BannerPopupCard';
+import '../../styles/ActionButtons.css';
 import './GridContainer.css';
 
 const GridContainer = ({ 
@@ -107,7 +108,7 @@ const GridContainer = ({
         <td>{new Date(item.createdAt).toLocaleDateString()}</td>
         <td>{new Date(item.updatedAt).toLocaleDateString()}</td>
         <td>
-          <div className="list-actions">
+          <div className="action-buttons">
             {child.props.onUpdate && (
               <button 
                 className="edit-button" 

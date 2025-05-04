@@ -55,16 +55,6 @@ const CategoryPopupCard = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const handleUpdate = (e) => {
-        e.stopPropagation();
-        if (onUpdate) onUpdate(item);
-    };
-
-    const handleDelete = (e) => {
-        e.stopPropagation();
-        if (onDelete) onDelete(item);
-    };
-
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -158,13 +148,25 @@ const CategoryPopupCard = ({
                         </div>
 
                         <div className="popup-actions">
-                            <button className="edit-button" onClick={handleUpdate}>
+                            <button 
+                                className="edit-button" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onUpdate(item);
+                                }}
+                                title="Actualizar"
+                            >
                                 <FaEdit />
-                                Editar
                             </button>
-                            <button className="delete-button" onClick={handleDelete}>
+                            <button 
+                                className="delete-button" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(item);
+                                }}
+                                title="Eliminar"
+                            >
                                 <FaTrash />
-                                Eliminar
                             </button>
                         </div>
                     </div>

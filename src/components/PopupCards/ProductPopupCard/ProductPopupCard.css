@@ -199,8 +199,8 @@
     margin-top: 1rem;
 }
 
-.edit-button,
-.delete-button {
+.popup-actions .edit-button,
+.popup-actions .delete-button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -214,23 +214,23 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.edit-button {
-    background-color: #1a73e8;
-    color: white;
+.popup-actions .edit-button {
+    background-color: white;
+    color: #1a73e8;
 }
 
-.edit-button:hover {
+.popup-actions .delete-button {
+    background-color: white;
+    color: #d93025;
+}
+
+.popup-actions .edit-button:hover {
     background-color: #1557b0;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
-.delete-button {
-    background-color: #d93025;
-    color: white;
-}
-
-.delete-button:hover {
+.popup-actions .delete-button:hover {
     background-color: #b31412;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
@@ -241,8 +241,8 @@
         padding: 1rem;
     }
     
-    .edit-button,
-    .delete-button {
+    .popup-actions .edit-button,
+    .popup-actions .delete-button {
         padding: 0.6rem 1rem;
         font-size: 0.9rem;
     }

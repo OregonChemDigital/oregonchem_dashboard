@@ -46,11 +46,18 @@ const AllProductsList = () => {
             const response = await fetch(ENDPOINTS.PRODUCTS);
             if (!response.ok) throw new Error('Failed to fetch products');
             const data = await response.json();
+            console.log('Raw API Response:', data);
+            
             // Add type property to each product
-            const productsWithType = (data.data || []).map(product => ({
-                ...product,
-                type: 'product'
-            }));
+            const productsWithType = (data.data || []).map(product => {
+                console.log('Processing Product:', product);
+                return {
+                    ...product,
+                    type: 'product'
+                };
+            });
+            
+            console.log('Processed Products:', productsWithType);
             const sortedProducts = sortProducts(productsWithType, sortOption);
             setProducts(sortedProducts);
             setFilteredProducts(sortedProducts);
@@ -110,42 +117,55 @@ const AllProductsList = () => {
             sortOption={sortOption}
             onSortChange={handleSortChange}
             onSearch={handleSearch}
-            renderListRow={(item, handleClick) => (
-                <tr 
-                    key={item._id} 
-                    onClick={() => handleClick(item)}
-                    style={{ cursor: 'pointer' }}
-                >
-                    <td>{item.name}</td>
-                    <td>{item.site || 'Global'}</td>
-                    <td>{new Date(item.createdAt).toLocaleDateString()}</td>
-                    <td>{new Date(item.updatedAt).toLocaleDateString()}</td>
-                    <td>
-                        <div className="list-actions">
-                            <button 
-                                className="edit-button" 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleProductUpdate(item);
-                                }}
-                                title="Actualizar"
-                            >
-                                <FaEdit />
-                            </button>
-                            <button 
-                                className="delete-button" 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleProductDelete(item);
-                                }}
-                                title="Eliminar"
-                            >
-                                <FaTrash />
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            )}
+            renderListRow={(item, handleClick) => {
+                console.log('List Row Item:', item);
+                const product = item.props.item;
+                console.log('Product Data:', product);
+                
+                return (
+                    <tr 
+                        key={product._id} 
+                        onClick={() => handleClick(product)}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <td>{product.name}</td>
+                        <td>{product.createdAt ? new Date(product.createdAt).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        }) : 'Fecha no disponible'}</td>
+                        <td>{product.updatedAt ? new Date(product.updatedAt).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        }) : 'Fecha no disponible'}</td>
+                        <td>
+                            <div className="list-actions">
+                                <button 
+                                    className="edit-button" 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleProductUpdate(product);
+                                    }}
+                                    title="Actualizar"
+                                >
+                                    <FaEdit />
+                                </button>
+                                <button 
+                                    className="delete-button" 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleProductDelete(product);
+                                    }}
+                                    title="Eliminar"
+                                >
+                                    <FaTrash />
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                );
+            }}
             renderPopupContent={(item, onClose) => {
                 console.log('Popup Item Data:', item);
                 console.log('Popup Item Presentations:', item.presentations);
