@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from '../../contexts/authContext';
 import { useLoading } from '../../contexts/loadingContext';
-import { fetchWithCache, API_ENDPOINTS } from '../../utils/api';
+import { fetchWithCache, API_ENDPOINTS, API_URL } from '../../utils/api';
 import "./Forms.css";
 
 const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess, initialData, onSubmit, submitButtonText = "Añadir producto", isQuimicaIndustrial = false }) => {
@@ -152,7 +152,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         }
       });
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}${API_ENDPOINTS.NEW_PRODUCT}`, {
+      const response = await fetch(`${API_URL}${API_ENDPOINTS.NEW_PRODUCT}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
