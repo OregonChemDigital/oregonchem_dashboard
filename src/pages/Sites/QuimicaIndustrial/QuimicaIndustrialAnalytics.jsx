@@ -28,9 +28,12 @@ const QuimicaIndustrial = () => {
                         'Authorization': `Bearer ${token}`
                     }
                 });
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.details || errorData.message || `HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 
                 // Fetch custom events data
@@ -39,9 +42,12 @@ const QuimicaIndustrial = () => {
                         'Authorization': `Bearer ${token}`
                     }
                 });
+                
                 if (!eventsResponse.ok) {
-                    throw new Error(`HTTP error! status: ${eventsResponse.status}`);
+                    const errorData = await eventsResponse.json();
+                    throw new Error(errorData.details || errorData.message || `HTTP error! status: ${eventsResponse.status}`);
                 }
+                
                 const eventsData = await eventsResponse.json();
 
                 setAnalyticsData(data);
