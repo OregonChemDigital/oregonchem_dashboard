@@ -6,6 +6,7 @@ import CategoryForm from "../../components/Forms/CategoryForm";
 import BannerForm from "../../components/Forms/BannerForm";
 import ProductForm from "../../components/Forms/ProductForm";
 import { fetchWithCache, API_ENDPOINTS, clearCache } from "../../utils/api";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import "../../styles/Layout.css";
 
 const Dashboard = () => {
@@ -66,7 +67,7 @@ const Dashboard = () => {
     }
 
     if (loading) {
-        return <div className="container">Loading...</div>;
+        return <LoadingSpinner />;
     }
 
     if (error) {

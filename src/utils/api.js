@@ -110,7 +110,7 @@ export const API_ENDPOINTS = {
     CATEGORIES: '/api/public/categorias',
     NEW_CATEGORY: '/api/categorias/nueva',
     PRESENTATIONS: '/api/public/presentaciones',
-    NEW_PRESENTATION: '/api/presentaciones/nuevo',
+    NEW_PRESENTATION: '/api/presentaciones/nueva',
     BANNERS: '/api/public/banners',
     NEW_BANNER: '/api/banners/nuevo',
     QUOTES: '/api/public/quotes',
