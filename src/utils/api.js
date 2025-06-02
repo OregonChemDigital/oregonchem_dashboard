@@ -2,9 +2,11 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 const MIN_FETCH_INTERVAL = 30 * 1000; // 30 seconds minimum between fetches
 
 // API URL configuration
-export const API_URL = import.meta.env.PROD
-    ? 'https://oregonchem-backend.onrender.com'
-    : (import.meta.env.VITE_API_URL || 'https://oregonchem-backend.onrender.com');
+export const API_URL = import.meta.env.DEV
+    ? (import.meta.env.VITE_API_URL || 'http://localhost:5001')
+    : 'https://oregonchem-backend.onrender.com';
+
+console.log('API URL:', API_URL); // Debug log
 
 class APICache {
     constructor() {
@@ -56,11 +58,13 @@ const apiCache = new APICache();
 
 export const fetchWithCache = async (endpoint, options = {}, force = false) => {
     const url = `${API_URL}${endpoint}`;
+    console.log('Fetching from:', url); // Debug log
 
     // Check cache first
     if (!force) {
         const cachedData = apiCache.get(url);
         if (cachedData) {
+            console.log('Using cached data for:', url); // Debug log
             return cachedData;
         }
     }
@@ -83,10 +87,13 @@ export const fetchWithCache = async (endpoint, options = {}, force = false) => {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText); // Debug log
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
         const data = await response.json();
+        console.log('API Response:', data); // Debug log
 
         // Update cache
         apiCache.set(url, data);

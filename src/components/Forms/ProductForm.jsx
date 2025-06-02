@@ -49,7 +49,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       setCategories(propsCategories);
       setLoading(false);
     }
-  }, [propsPresentations, propsCategories, showLoading, hideLoading]);
+  }, []);
 
   useEffect(() => {
     if (presentations) {

@@ -139,7 +139,8 @@ const ProductPopupCard = ({
                                 <div className="presentations-list">
                                     {item.presentations.map((presentation, index) => (
                                         <div key={index} className="presentation-item">
-                                            {presentation.name}{presentation.measure ? ` - ${presentation.measure}` : ''}
+                                            {/* {presentation.name}{presentation.measure ? ` - ${presentation.measure}` : ''} */}
+                                            {presentation.name}
                                         </div>
                                     ))}
                                 </div>
