@@ -4,6 +4,14 @@ import { useLoading } from '../../contexts/loadingContext';
 import { fetchWithCache, API_ENDPOINTS, API_URL } from '../../utils/api';
 import "./Forms.css";
 
+const FRONTEND_OPTIONS = [
+  { id: 'site1', label: 'Química Industrial' },
+  { id: 'site2', label: 'Frontend 2' },
+  { id: 'site3', label: 'Frontend 3' },
+  { id: 'site4', label: 'Frontend 4' },
+  { id: 'site5', label: 'Frontend 5' }
+];
+
 const ProductForm = ({ presentations: propsPresentations, categories: propsCategories, onSuccess, initialData, onSubmit, submitButtonText = "Añadir producto", isQuimicaIndustrial = false }) => {
   const { currentUser } = useAuth();
   const { showLoading, hideLoading, showSuccess } = useLoading();
@@ -13,6 +21,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
   const [selectedPresentations, setSelectedPresentations] = useState(initialData?.presentations || []);
   const [presentationType, setPresentationType] = useState("solido");
   const [selectedCategories, setSelectedCategories] = useState(initialData?.categories || []);
+  const [selectedFrontends, setSelectedFrontends] = useState(initialData?.frontends || ['site1']);
   const [descriptions, setDescriptions] = useState(initialData?.descriptions ? Object.values(initialData.descriptions) : Array(5).fill(""));
   const [uses, setUses] = useState(initialData?.uses ? Object.values(initialData.uses) : Array(5).fill(""));
   const [productImages, setProductImages] = useState(
@@ -100,18 +109,24 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
     if (selectedCategories.length === 0) {
       newErrors.categories = "Please select at least one category";
     }
-    
-    if (!descriptions.some(desc => desc.trim())) {
-      newErrors.descriptions = "Please add at least one description";
+
+    if (selectedFrontends.length === 0) {
+      newErrors.frontends = "Please select at least one frontend";
     }
     
-    if (!uses.some(use => use.trim())) {
-      newErrors.uses = "Please add at least one use";
-    }
-    
-    if (!productImages.some(img => img.file)) {
-      newErrors.images = "Please upload at least one image";
-    }
+    // Only validate descriptions, uses, and images for selected frontends
+    selectedFrontends.forEach((frontend, index) => {
+      const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
+      if (!descriptions[frontendIndex]?.trim()) {
+        newErrors[`description${frontendIndex}`] = `Description for ${FRONTEND_OPTIONS[frontendIndex].label} is required`;
+      }
+      if (!uses[frontendIndex]?.trim()) {
+        newErrors[`use${frontendIndex}`] = `Use for ${FRONTEND_OPTIONS[frontendIndex].label} is required`;
+      }
+      if (!productImages[frontendIndex]?.file && !productImages[frontendIndex]?.previewUrl) {
+        newErrors[`image${frontendIndex}`] = `Image for ${FRONTEND_OPTIONS[frontendIndex].label} is required`;
+      }
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -137,18 +152,15 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       formData.append("name", productName);
       selectedPresentations.forEach(p => formData.append("presentations[]", p));
       selectedCategories.forEach(c => formData.append("categories[]", c));
+      selectedFrontends.forEach(f => formData.append("frontends[]", f));
 
-      descriptions.forEach((desc, index) => {
-        formData.append(`descriptions[site${index + 1}]`, desc);
-      });
-
-      uses.forEach((use, index) => {
-        formData.append(`uses[site${index + 1}]`, use);
-      });
-
-      productImages.forEach((imageObj, index) => {
-        if (imageObj.file) {
-          formData.append(`images[site${index + 1}]`, imageObj.file);
+      // Only include data for selected frontends
+      selectedFrontends.forEach((frontend, index) => {
+        const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
+        formData.append(`descriptions[${frontend}]`, descriptions[frontendIndex]);
+        formData.append(`uses[${frontend}]`, uses[frontendIndex]);
+        if (productImages[frontendIndex]?.file) {
+          formData.append(`images[${frontend}]`, productImages[frontendIndex].file);
         }
       });
 
@@ -173,6 +185,7 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       setUses(Array(5).fill(""));
       setSelectedPresentations([]);
       setSelectedCategories([]);
+      setSelectedFrontends(['site1']);
       setErrors({});
       
       showSuccess("Product added successfully!");
@@ -203,6 +216,35 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
           />
           {errors.productName && <span className="error-message">{errors.productName}</span>}
         </div>
+
+        <div className="form-group">
+          <label className="card-label">Frontends</label>
+          <div className="frontends-body">
+            {FRONTEND_OPTIONS.map((frontend) => (
+              <div key={frontend.id} className="checkbox-item">
+                <input
+                  type="checkbox"
+                  id={`frontend-${frontend.id}`}
+                  name="frontends"
+                  value={frontend.id}
+                  checked={selectedFrontends.includes(frontend.id)}
+                  onChange={() => {
+                    setSelectedFrontends(prev =>
+                      prev.includes(frontend.id)
+                        ? prev.filter(id => id !== frontend.id)
+                        : [...prev, frontend.id]
+                    );
+                  }}
+                />
+                <label htmlFor={`frontend-${frontend.id}`}>
+                  {frontend.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          {errors.frontends && <span className="error-message">{errors.frontends}</span>}
+        </div>
+
         <div className="form-group">
           <label className="card-label">Presentaciones</label>
           <select
@@ -269,122 +311,91 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
         </div>
         <div className="form-group">
           <label className="card-label">Descripciones</label>
-          {isQuimicaIndustrial ? (
-            <input
-              id="description-1"
-              value={descriptions[0] || ""}
-              onChange={(e) =>
-                handleArrayChange(descriptions, setDescriptions, 0, e.target.value)
-              }
-              placeholder="Descripción Química Industrial"
-              className="input-field"
-            />
-          ) : (
-            descriptions.map((description, index) => (
-              <input
-                key={index}
-                id={`description-${index + 1}`}
-                value={description}
-                onChange={(e) =>
-                  handleArrayChange(descriptions, setDescriptions, index, e.target.value)
-                }
-                placeholder={`Descripción ${index + 1}`}
-                className="input-field"
-              />
-            ))
-          )}
-          {descriptions.map((_, index) =>
-            errors[`description${index}`] && (
-              <span key={index} className="error-message">{errors[`description${index}`]}</span>
-            )
-          )}
+          {selectedFrontends.map((frontend, index) => {
+            const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
+            return (
+              <div key={frontend} className="frontend-input-group">
+                <label className="frontend-label">{FRONTEND_OPTIONS[frontendIndex].label}</label>
+                <input
+                  id={`description-${frontendIndex + 1}`}
+                  value={descriptions[frontendIndex] || ""}
+                  onChange={(e) =>
+                    handleArrayChange(descriptions, setDescriptions, frontendIndex, e.target.value)
+                  }
+                  placeholder={`Descripción ${FRONTEND_OPTIONS[frontendIndex].label}`}
+                  className="input-field"
+                />
+                {errors[`description${frontendIndex}`] && (
+                  <span className="error-message">{errors[`description${frontendIndex}`]}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="form-group">
           <label className="card-label">Usos</label>
-          {isQuimicaIndustrial ? (
-            <input
-              id="use-1"
-              value={uses[0] || ""}
-              onChange={(e) =>
-                handleArrayChange(uses, setUses, 0, e.target.value)
-              }
-              placeholder="Usos Química Industrial"
-              className="input-field"
-            />
-          ) : (
-            uses.map((use, index) => (
-              <input
-                key={index}
-                id={`use-${index + 1}`}
-                value={use}
-                onChange={(e) =>
-                  handleArrayChange(uses, setUses, index, e.target.value)
-                }
-                placeholder={`Uso ${index + 1}`}
-                className="input-field"
-              />
-            ))
-          )}
-          {uses.map((_, index) =>
-            errors[`use${index}`] && (
-              <span key={index} className="error-message">{errors[`use${index}`]}</span>
-            )
-          )}
+          <p className="helper-text">
+            Ingrese los usos separados por comas. Estos se utilizarán como palabras clave para SEO.
+            Ejemplo: "limpieza industrial, desinfección, sanitización, limpieza de superficies"
+          </p>
+          {selectedFrontends.map((frontend, index) => {
+            const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
+            return (
+              <div key={frontend} className="frontend-input-group">
+                <label className="frontend-label">{FRONTEND_OPTIONS[frontendIndex].label}</label>
+                <input
+                  id={`use-${frontendIndex + 1}`}
+                  value={uses[frontendIndex] || ""}
+                  onChange={(e) =>
+                    handleArrayChange(uses, setUses, frontendIndex, e.target.value)
+                  }
+                  placeholder={`Usos para ${FRONTEND_OPTIONS[frontendIndex].label} (separados por comas)`}
+                  className="input-field"
+                />
+                {errors[`use${frontendIndex}`] && (
+                  <span className="error-message">{errors[`use${frontendIndex}`]}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="form-group">
           <label className="card-label">Imágenes</label>
           <div className="image-container">
-            {isQuimicaIndustrial ? (
-              <div className="image-circle">
-                <label
-                  htmlFor="product-image-0"
-                  className="image-upload-label"
-                >
-                  {productImages[0]?.previewUrl ? (
-                    <img
-                      src={productImages[0].previewUrl}
-                      alt="Product Química Industrial"
-                      className="image-preview"
+            {selectedFrontends.map((frontend, index) => {
+              const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
+              return (
+                <div key={frontend} className="frontend-image-group">
+                  <label className="frontend-label">{FRONTEND_OPTIONS[frontendIndex].label}</label>
+                  <div className="image-circle">
+                    <label
+                      htmlFor={`product-image-${frontendIndex}`}
+                      className="image-upload-label"
+                    >
+                      {productImages[frontendIndex]?.previewUrl ? (
+                        <img
+                          src={productImages[frontendIndex].previewUrl}
+                          alt={`Product ${FRONTEND_OPTIONS[frontendIndex].label}`}
+                          className="image-preview"
+                        />
+                      ) : (
+                        <span className="plus-sign">+</span>
+                      )}
+                    </label>
+                    <input
+                      type="file"
+                      id={`product-image-${frontendIndex}`}
+                      className="image-upload-input"
+                      accept="image/*"
+                      onChange={(event) => handleImageUpload(event, frontendIndex)}
                     />
-                  ) : (
-                    <span className="plus-sign">+</span>
+                  </div>
+                  {errors[`image${frontendIndex}`] && (
+                    <span className="error-message">{errors[`image${frontendIndex}`]}</span>
                   )}
-                </label>
-                <input
-                  type="file"
-                  id="product-image-0"
-                  className="image-upload-input"
-                  accept="image/*"
-                  onChange={(event) => handleImageUpload(event, 0)}
-                />
-              </div>
-            ) : (
-              productImages.map((imageObj, index) => (
-                <div key={index} className="image-circle">
-                  <label
-                    htmlFor={`product-image-${index}`}
-                    className="image-upload-label"
-                  >
-                    {imageObj.previewUrl ? (
-                      <img
-                        src={imageObj.previewUrl}
-                        alt={`Product ${index + 1}`}
-                        className="image-preview"
-                      />
-                    ) : (
-                      <span className="plus-sign">+</span>
-                    )}
-                  </label>
-                  <input
-                    type="file"
-                    id={`product-image-${index}`}
-                    className="image-upload-input"
-                    accept="image/*"
-                    onChange={(event) => handleImageUpload(event, index)}
-                  />
                 </div>
-              ))
-            )}
+              );
+            })}
           </div>
         </div>
         <div className="form-group">
