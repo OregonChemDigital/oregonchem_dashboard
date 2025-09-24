@@ -112,7 +112,6 @@ export const API_ENDPOINTS = {
     PRODUCTS: '/api/productos',
     PUBLIC_PRODUCTS: '/api/public/productos',
     CREATE_PRODUCT: '/api/productos/nuevo',
-    NEW_AI_PRODUCT: '/api/productos/ai/nuevo',
     UPDATE_PRODUCT: '/api/productos',
     DELETE_PRODUCT: '/api/productos',
     

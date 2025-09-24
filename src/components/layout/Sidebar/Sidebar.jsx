@@ -52,11 +52,6 @@ const Sidebar = ({ collapsed }) => {
                                 </NavLink>
                             </li>
                             <li>
-                                <NavLink to="/productos/crear-ai" className="sidebar__sublink">
-                                    Crear Producto con IA
-                                </NavLink>
-                            </li>
-                            <li>
                                 <NavLink to="/productos/todos" className="sidebar__sublink">
                                     Productos OregonChem
                                 </NavLink>

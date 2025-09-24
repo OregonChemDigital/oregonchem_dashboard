@@ -17,15 +17,18 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
   const { showLoading, hideLoading, showSuccess } = useLoading();
   const [presentations, setPresentations] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [filteredPresentations, setFilteredPresentations] = useState([]);
   const [selectedPresentations, setSelectedPresentations] = useState(initialData?.presentations || []);
-  const [presentationType, setPresentationType] = useState("solido");
   const [selectedCategories, setSelectedCategories] = useState(initialData?.categories || []);
   const [selectedFrontends, setSelectedFrontends] = useState(initialData?.frontends || ['site1']);
-  const [descriptions, setDescriptions] = useState(initialData?.descriptions ? Object.values(initialData.descriptions) : Array(5).fill(""));
-  const [uses, setUses] = useState(initialData?.uses ? Object.values(initialData.uses) : Array(5).fill(""));
+  const [descriptions, setDescriptions] = useState(initialData?.descriptions || {});
+  const [uses, setUses] = useState(initialData?.uses || {});
+  const [prices, setPrices] = useState(initialData?.prices || {});
   const [productImages, setProductImages] = useState(
-    initialData?.images ? Object.entries(initialData.images).map(([_, url]) => ({ file: null, previewUrl: url })) : Array(5).fill({ file: null, previewUrl: null })
+    initialData?.images ? Object.entries(initialData.images).map(([site, url]) => ({ 
+      site, 
+      file: null, 
+      previewUrl: url 
+    })) : []
   );
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -60,15 +63,9 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
     }
   }, []);
 
-  useEffect(() => {
-    if (presentations) {
-      setFilteredPresentations(
-        presentations.filter((presentation) => presentation.type === presentationType)
-      );
-    }
-  }, [presentationType, presentations]);
+  // Remove the filtered presentations logic since we're now using the new Presentation model
 
-  const handleImageUpload = (event, index) => {
+  const handleImageUpload = (event, siteId) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -79,9 +76,14 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
 
     const previewUrl = URL.createObjectURL(file);
     setProductImages((prev) => {
-      const updated = [...prev];
-      updated[index] = { file, previewUrl };
-      return updated;
+      const existing = prev.find(img => img.site === siteId);
+      if (existing) {
+        return prev.map(img => 
+          img.site === siteId ? { ...img, file, previewUrl } : img
+        );
+      } else {
+        return [...prev, { site: siteId, file, previewUrl }];
+      }
     });
   };
 
@@ -91,12 +93,14 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
     );
   };
 
-  const handleArrayChange = (array, setArray, index, value) => {
-    setArray((prev) => {
-      const updatedArray = [...prev];
-      updatedArray[index] = value;
-      return updatedArray;
-    });
+  const handleFieldChange = (field, siteId, value) => {
+    if (field === 'descriptions') {
+      setDescriptions(prev => ({ ...prev, [siteId]: value }));
+    } else if (field === 'uses') {
+      setUses(prev => ({ ...prev, [siteId]: value }));
+    } else if (field === 'prices') {
+      setPrices(prev => ({ ...prev, [siteId]: value }));
+    }
   };
 
   const validateForm = () => {
@@ -114,17 +118,22 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       newErrors.frontends = "Please select at least one frontend";
     }
     
-    // Only validate descriptions, uses, and images for selected frontends
-    selectedFrontends.forEach((frontend, index) => {
-      const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
-      if (!descriptions[frontendIndex]?.trim()) {
-        newErrors[`description${frontendIndex}`] = `Description for ${FRONTEND_OPTIONS[frontendIndex].label} is required`;
+    // Only validate descriptions, uses, images, and prices for selected frontends
+    selectedFrontends.forEach((frontend) => {
+      const frontendOption = FRONTEND_OPTIONS.find(f => f.id === frontend);
+      if (!descriptions[frontend]?.trim()) {
+        newErrors[`description${frontend}`] = `Description for ${frontendOption?.label} is required`;
       }
-      if (!uses[frontendIndex]?.trim()) {
-        newErrors[`use${frontendIndex}`] = `Use for ${FRONTEND_OPTIONS[frontendIndex].label} is required`;
+      if (!uses[frontend]?.trim()) {
+        newErrors[`use${frontend}`] = `Use for ${frontendOption?.label} is required`;
       }
-      if (!productImages[frontendIndex]?.file && !productImages[frontendIndex]?.previewUrl) {
-        newErrors[`image${frontendIndex}`] = `Image for ${FRONTEND_OPTIONS[frontendIndex].label} is required`;
+      if (!prices[frontend] || prices[frontend] <= 0) {
+        newErrors[`price${frontend}`] = `Price for ${frontendOption?.label} is required`;
+      }
+      
+      const imageForSite = productImages.find(img => img.site === frontend);
+      if (!imageForSite?.file && !imageForSite?.previewUrl) {
+        newErrors[`image${frontend}`] = `Image for ${frontendOption?.label} is required`;
       }
     });
 
@@ -155,12 +164,14 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       selectedFrontends.forEach(f => formData.append("frontends[]", f));
 
       // Only include data for selected frontends
-      selectedFrontends.forEach((frontend, index) => {
-        const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
-        formData.append(`descriptions[${frontend}]`, descriptions[frontendIndex]);
-        formData.append(`uses[${frontend}]`, uses[frontendIndex]);
-        if (productImages[frontendIndex]?.file) {
-          formData.append(`images[${frontend}]`, productImages[frontendIndex].file);
+      selectedFrontends.forEach((frontend) => {
+        formData.append(`descriptions[${frontend}]`, descriptions[frontend] || "");
+        formData.append(`uses[${frontend}]`, uses[frontend] || "");
+        formData.append(`prices[${frontend}]`, prices[frontend] || "");
+        
+        const imageForSite = productImages.find(img => img.site === frontend);
+        if (imageForSite?.file) {
+          formData.append(`images[${frontend}]`, imageForSite.file);
         }
       });
 
@@ -180,9 +191,10 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
       const result = await response.json();
 
       // Reset the form on successful submission
-      setProductImages(Array(5).fill({ file: null, previewUrl: null }));
-      setDescriptions(Array(5).fill(""));
-      setUses(Array(5).fill(""));
+      setProductImages([]);
+      setDescriptions({});
+      setUses({});
+      setPrices({});
       setSelectedPresentations([]);
       setSelectedCategories([]);
       setSelectedFrontends(['site1']);
@@ -203,20 +215,80 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
   return (
     <div className="form-container">
       <form onSubmit={onSubmit || handleSubmit}>
+        {/* Product Name */}
         <div className="form-group">
           <label htmlFor="product-name" className="card-label">
-            Nombre
+            Nombre del Producto
           </label>
           <input
             type="text"
             id="product-name"
-            placeholder="Ingresar nombre"
+            placeholder="Ingresar nombre del producto"
             className="input-field"
             defaultValue={initialData?.name}
           />
           {errors.productName && <span className="error-message">{errors.productName}</span>}
         </div>
 
+        {/* Presentations Selection */}
+        <div className="form-group">
+          <label className="card-label">Presentaciones</label>
+          <div className="presentations-body">
+            {presentations && presentations.map((presentation) => (
+              <div key={presentation._id} className="checkbox-item">
+                <input
+                  type="checkbox"
+                  id={`presentation-${presentation._id}`}
+                  name="presentations"
+                  value={presentation._id}
+                  checked={selectedPresentations.includes(presentation._id)}
+                  onChange={() =>
+                    toggleSelection(
+                      selectedPresentations,
+                      setSelectedPresentations,
+                      presentation._id
+                    )
+                  }
+                />
+                <label htmlFor={`presentation-${presentation._id}`}>
+                  {presentation.name}
+                </label>
+              </div>
+            ))}
+          </div>
+          {errors.presentations && <span className="error-message">{errors.presentations}</span>}
+        </div>
+
+        {/* Categories Selection */}
+        <div className="form-group">
+          <label className="card-label">Categorías</label>
+          <div className="categories-body">
+            {categories && categories.map((category) => (
+              <div key={category._id} className="checkbox-item">
+                <input
+                  type="checkbox"
+                  id={`category-${category._id}`}
+                  name="categories"
+                  value={category._id}
+                  checked={selectedCategories.includes(category._id)}
+                  onChange={() =>
+                    toggleSelection(
+                      selectedCategories,
+                      setSelectedCategories,
+                      category._id
+                    )
+                  }
+                />
+                <label htmlFor={`category-${category._id}`}>
+                  {category.name}
+                </label>
+              </div>
+            ))}
+          </div>
+          {errors.categories && <span className="error-message">{errors.categories}</span>}
+        </div>
+
+        {/* Frontends Selection */}
         <div className="form-group">
           <label className="card-label">Frontends</label>
           <div className="frontends-body">
@@ -245,137 +317,78 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
           {errors.frontends && <span className="error-message">{errors.frontends}</span>}
         </div>
 
-        <div className="form-group">
-          <label className="card-label">Presentaciones</label>
-          <select
-            id="presentationType"
-            value={presentationType}
-            onChange={(e) => setPresentationType(e.target.value)}
-            required
-            className="input-field"
-          >
-            <option value="solido">Sólidas</option>
-            <option value="liquido">Líquidas</option>
-          </select>
-          <div className="presentations-body">
-            {filteredPresentations.map((presentation) => (
-              <div key={presentation._id} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`presentation-${presentation._id}`}
-                  name="presentations"
-                  value={presentation._id}
-                  checked={selectedPresentations.includes(presentation._id)}
-                  onChange={() =>
-                    toggleSelection(
-                      selectedPresentations,
-                      setSelectedPresentations,
-                      presentation._id
-                    )
-                  }
+        {/* Dynamic Fields for Selected Frontends */}
+        {selectedFrontends.map((frontend) => {
+          const frontendOption = FRONTEND_OPTIONS.find(f => f.id === frontend);
+          const imageForSite = productImages.find(img => img.site === frontend);
+          
+          return (
+            <div key={frontend} className="frontend-section">
+              <h3 className="frontend-section-title">{frontendOption?.label}</h3>
+              
+              {/* Description */}
+              <div className="form-group">
+                <label className="card-label">Descripción</label>
+                <textarea
+                  value={descriptions[frontend] || ""}
+                  onChange={(e) => handleFieldChange('descriptions', frontend, e.target.value)}
+                  placeholder={`Descripción para ${frontendOption?.label}`}
+                  className={`input-field ${errors[`description${frontend}`] ? "error" : ""}`}
+                  rows="3"
                 />
-                <label htmlFor={`presentation-${presentation._id}`}>
-                  {presentation.name}
-                </label>
-              </div>
-            ))}
-          </div>
-          {errors.presentations && <span className="error-message">{errors.presentations}</span>}
-        </div>
-        <div className="form-group">
-          <label className="card-label">Categorías</label>
-          <div className="categories-body">
-            {categories && categories.map((category) => (
-              <div key={category._id} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`category-${category._id}`}
-                  name="categories"
-                  value={category._id}
-                  checked={selectedCategories.includes(category._id)}
-                  onChange={() =>
-                    toggleSelection(
-                      selectedCategories,
-                      setSelectedCategories,
-                      category._id
-                    )
-                  }
-                />
-                <label htmlFor={`category-${category._id}`}>
-                  {category.name}
-                </label>
-              </div>
-            ))}
-          </div>
-          {errors.categories && <span className="error-message">{errors.categories}</span>}
-        </div>
-        <div className="form-group">
-          <label className="card-label">Descripciones</label>
-          {selectedFrontends.map((frontend, index) => {
-            const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
-            return (
-              <div key={frontend} className="frontend-input-group">
-                <label className="frontend-label">{FRONTEND_OPTIONS[frontendIndex].label}</label>
-                <input
-                  id={`description-${frontendIndex + 1}`}
-                  value={descriptions[frontendIndex] || ""}
-                  onChange={(e) =>
-                    handleArrayChange(descriptions, setDescriptions, frontendIndex, e.target.value)
-                  }
-                  placeholder={`Descripción ${FRONTEND_OPTIONS[frontendIndex].label}`}
-                  className="input-field"
-                />
-                {errors[`description${frontendIndex}`] && (
-                  <span className="error-message">{errors[`description${frontendIndex}`]}</span>
+                {errors[`description${frontend}`] && (
+                  <span className="error-message">{errors[`description${frontend}`]}</span>
                 )}
               </div>
-            );
-          })}
-        </div>
-        <div className="form-group">
-          <label className="card-label">Usos</label>
-          <p className="helper-text">
-            Ingrese los usos separados por comas. Estos se utilizarán como palabras clave para SEO.
-            Ejemplo: "limpieza industrial, desinfección, sanitización, limpieza de superficies"
-          </p>
-          {selectedFrontends.map((frontend, index) => {
-            const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
-            return (
-              <div key={frontend} className="frontend-input-group">
-                <label className="frontend-label">{FRONTEND_OPTIONS[frontendIndex].label}</label>
+
+              {/* Uses */}
+              <div className="form-group">
+                <label className="card-label">Usos</label>
+                <p className="helper-text">
+                  Ingrese los usos separados por comas. Estos se utilizarán como palabras clave para SEO.
+                  Ejemplo: "limpieza industrial, desinfección, sanitización, limpieza de superficies"
+                </p>
                 <input
-                  id={`use-${frontendIndex + 1}`}
-                  value={uses[frontendIndex] || ""}
-                  onChange={(e) =>
-                    handleArrayChange(uses, setUses, frontendIndex, e.target.value)
-                  }
-                  placeholder={`Usos para ${FRONTEND_OPTIONS[frontendIndex].label} (separados por comas)`}
-                  className="input-field"
+                  value={uses[frontend] || ""}
+                  onChange={(e) => handleFieldChange('uses', frontend, e.target.value)}
+                  placeholder={`Usos para ${frontendOption?.label} (separados por comas)`}
+                  className={`input-field ${errors[`use${frontend}`] ? "error" : ""}`}
                 />
-                {errors[`use${frontendIndex}`] && (
-                  <span className="error-message">{errors[`use${frontendIndex}`]}</span>
+                {errors[`use${frontend}`] && (
+                  <span className="error-message">{errors[`use${frontend}`]}</span>
                 )}
               </div>
-            );
-          })}
-        </div>
-        <div className="form-group">
-          <label className="card-label">Imágenes</label>
-          <div className="image-container">
-            {selectedFrontends.map((frontend, index) => {
-              const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
-              return (
-                <div key={frontend} className="frontend-image-group">
-                  <label className="frontend-label">{FRONTEND_OPTIONS[frontendIndex].label}</label>
+
+              {/* Price */}
+              <div className="form-group">
+                <label className="card-label">Precio</label>
+                <input
+                  type="number"
+                  value={prices[frontend] || ""}
+                  onChange={(e) => handleFieldChange('prices', frontend, parseFloat(e.target.value))}
+                  placeholder={`Precio para ${frontendOption?.label}`}
+                  className={`input-field ${errors[`price${frontend}`] ? "error" : ""}`}
+                  min="0"
+                  step="0.01"
+                />
+                {errors[`price${frontend}`] && (
+                  <span className="error-message">{errors[`price${frontend}`]}</span>
+                )}
+              </div>
+
+              {/* Image */}
+              <div className="form-group">
+                <label className="card-label">Imagen</label>
+                <div className="image-container">
                   <div className="image-circle">
                     <label
-                      htmlFor={`product-image-${frontendIndex}`}
+                      htmlFor={`product-image-${frontend}`}
                       className="image-upload-label"
                     >
-                      {productImages[frontendIndex]?.previewUrl ? (
+                      {imageForSite?.previewUrl ? (
                         <img
-                          src={productImages[frontendIndex].previewUrl}
-                          alt={`Product ${FRONTEND_OPTIONS[frontendIndex].label}`}
+                          src={imageForSite.previewUrl}
+                          alt={`Product ${frontendOption?.label}`}
                           className="image-preview"
                         />
                       ) : (
@@ -384,25 +397,34 @@ const ProductForm = ({ presentations: propsPresentations, categories: propsCateg
                     </label>
                     <input
                       type="file"
-                      id={`product-image-${frontendIndex}`}
+                      id={`product-image-${frontend}`}
                       className="image-upload-input"
                       accept="image/*"
-                      onChange={(event) => handleImageUpload(event, frontendIndex)}
+                      onChange={(event) => handleImageUpload(event, frontend)}
                     />
                   </div>
-                  {errors[`image${frontendIndex}`] && (
-                    <span className="error-message">{errors[`image${frontendIndex}`]}</span>
-                  )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                {errors[`image${frontend}`] && (
+                  <span className="error-message">{errors[`image${frontend}`]}</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Submit Button */}
         <div className="form-group">
           <button type="submit" className="submit-button">
             {submitButtonText}
           </button>
         </div>
+
+        {/* Error Messages */}
+        {errors.submit && (
+          <div className="form-group">
+            <span className="error-message">{errors.submit}</span>
+          </div>
+        )}
       </form>
     </div>
   );

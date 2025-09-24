@@ -41,12 +41,12 @@ export const mapSiteDataToArray = (siteData) => {
 
 // Helper function to map site-specific images to array
 export const mapSiteImagesToArray = (siteImages) => {
-  const array = Array(5).fill({ file: null, previewUrl: null, aiGenerated: false, templateId: null });
+  const array = Array(5).fill({ file: null, previewUrl: null });
   if (siteImages) {
     Object.entries(siteImages).forEach(([site, url]) => {
       const siteIndex = parseInt(site.replace('site', '')) - 1;
       if (siteIndex >= 0 && siteIndex < 5) {
-        array[siteIndex] = { file: null, previewUrl: url || null, aiGenerated: false, templateId: null };
+        array[siteIndex] = { file: null, previewUrl: url || null };
       }
     });
   }

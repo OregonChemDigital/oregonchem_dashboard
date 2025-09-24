@@ -6,7 +6,6 @@ import Topbar from "../components/layout/Topbar/Topbar";
 import Login from "../pages/auth/Login";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CreateProduct from "../pages/products/CreateProduct";
-import CreateAIProduct from "../pages/products/CreateAIProduct";
 import AllProductsList from "../pages/products/AllProductsList";
 import CreateCategory from "../pages/categories/CreateCategory";
 import CategoryList from "../pages/categories/CategoryList";
@@ -43,7 +42,6 @@ const AppRoutes = () => {
                             
                             {/* Global Routes */}
                             <Route path="/productos/crear" element={<PrivateRoute><CreateProduct /></PrivateRoute>} />
-                            <Route path="/productos/crear-ai" element={<PrivateRoute><CreateAIProduct /></PrivateRoute>} />
                             <Route path="/productos/todos" element={<PrivateRoute><AllProductsList /></PrivateRoute>} />
                             <Route path="/categorias/crear" element={<PrivateRoute><CreateCategory /></PrivateRoute>} />
                             <Route path="/categorias/todas" element={<PrivateRoute><CategoryList /></PrivateRoute>} />

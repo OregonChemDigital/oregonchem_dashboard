@@ -98,48 +98,6 @@ export const prepareFormData = (formDataObj, selectedFrontends, descriptions, us
   return formData;
 };
 
-// AI-specific form data preparation
-export const prepareAIFormData = (formDataObj, selectedFrontends, descriptions, uses, prices, aiGeneratedImages, selectedGeneratedImages) => {
-  const formData = new FormData();
-  
-  // Basic data
-  formData.append("name", formDataObj.name);
-  formData.append("templates", JSON.stringify(formDataObj.templates));
-  formData.append("aiSettings", JSON.stringify(formDataObj.aiSettings));
-  
-  formDataObj.categories.forEach(c => formData.append("categories[]", c));
-  formDataObj.frontends.forEach(f => formData.append("frontends[]", f));
-
-  // Site-specific data
-  selectedFrontends.forEach((frontend) => {
-    const frontendIndex = parseInt(frontend.replace('site', '')) - 1;
-    
-    formData.append(`descriptions[${frontend}]`, descriptions[frontendIndex] || "");
-    formData.append(`uses[${frontend}]`, uses[frontendIndex] || "");
-    
-    if (prices[frontendIndex] && prices[frontendIndex] !== "") {
-      formData.append(`prices[${frontend}]`, prices[frontendIndex]);
-    }
-    
-    // Handle AI generated images vs regular file uploads
-    const selectedImagesForFrontend = Object.values(aiGeneratedImages)
-      .flat()
-      .filter(img => selectedGeneratedImages.includes(img.id));
-    
-    if (selectedImagesForFrontend.length > 0) {
-      const selectedImage = selectedImagesForFrontend[0];
-      formData.append(`aiImages[${frontend}]`, JSON.stringify({
-        previewUrl: selectedImage.previewUrl,
-        templateId: selectedImage.templateId,
-        templateName: selectedImage.templateName,
-        presentacion: selectedImage.presentacion,
-        aiGenerated: true
-      }));
-    }
-  });
-
-  return formData;
-};
 
 // Error handling utilities
 export const handleApiError = (error, setErrors) => {
