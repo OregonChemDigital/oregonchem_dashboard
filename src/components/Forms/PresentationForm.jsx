@@ -4,75 +4,79 @@ import { useLoading } from '../../contexts/loadingContext';
 import { API_ENDPOINTS } from '../../utils/api';
 import "./Forms.css";
 
-const MEASUREMENT_OPTIONS = {
-  solido: [
-    { value: "g", label: "Gramos (g)" },
-    { value: "kg", label: "Kilogramos (kg)" }
-  ],
-  liquido: [
-    { value: "ml", label: "Mililitros (ml)" },
-    { value: "L", label: "Litros (L)" },
-    { value: "gal", label: "Galones (gal)" }
-  ]
-};
-
 const PresentationForm = ({ onSuccess }) => {
   const { currentUser } = useAuth();
   const { showLoading, hideLoading, showSuccess } = useLoading();
-  const [type, setType] = useState("solido");
-  const [measure, setMeasure] = useState("g");
-  const [quantity, setQuantity] = useState("");
-  const [presentationImages, setPresentationImages] = useState(Array(5).fill({ file: null, previewUrl: null }));
+  const [name, setName] = useState("");
+  const [promptText, setPromptText] = useState("");
+  const [templateImage, setTemplateImage] = useState("");
+  const [templateImagePreview, setTemplateImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
 
   const resetForm = () => {
-    setType("solido");
-    setMeasure("g");
-    setQuantity("");
-    setPresentationImages(Array(5).fill({ file: null, previewUrl: null }));
+    setName("");
+    setPromptText("");
+    setTemplateImage("");
+    setTemplateImagePreview(null);
     setErrors({});
   };
 
-  const handleImageUpload = (event, index) => {
+  const handleTemplateImageFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setErrors({ images: "Por favor suba un archivo de imagen" });
+    if (file.type !== 'text/plain') {
+      setErrors({ templateImage: "Por favor suba un archivo de texto (.txt) con datos base64" });
       return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
-    setPresentationImages(prev => {
-      const updated = [...prev];
-      updated[index] = { file, previewUrl };
-      return updated;
-    });
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64String = e.target.result;
+      setTemplateImage(base64String);
+      
+      // Try to create preview if it's a valid base64 image
+      if (base64String.startsWith('data:image/')) {
+        setTemplateImagePreview(base64String);
+      } else if (base64String.startsWith('iVBORw0KGgo') || base64String.startsWith('/9j/')) {
+        // Handle base64 without data URL prefix
+        const dataUrl = `data:image/png;base64,${base64String}`;
+        setTemplateImagePreview(dataUrl);
+      }
+    };
+    reader.readAsText(file);
   };
 
-  const renderMeasurementOptions = () => MEASUREMENT_OPTIONS[type].map(option => (
-    <option key={option.value} value={option.value}>
-      {option.label}
-    </option>
-  ));
-
-  const handleTypeChange = (event) => {
-    const newType = event.target.value;
-    setType(newType);
-    setMeasure(MEASUREMENT_OPTIONS[newType][0].value);
+  const handleTemplateImageTextChange = (event) => {
+    const value = event.target.value;
+    setTemplateImage(value);
+    
+    // Try to create preview if it's a valid base64 image
+    if (value.startsWith('data:image/')) {
+      setTemplateImagePreview(value);
+    } else if (value.startsWith('iVBORw0KGgo') || value.startsWith('/9j/')) {
+      // Handle base64 without data URL prefix
+      const dataUrl = `data:image/png;base64,${value}`;
+      setTemplateImagePreview(dataUrl);
+    } else {
+      setTemplateImagePreview(null);
+    }
   };
+
 
   const validateForm = () => {
     const newErrors = {};
     
-    if (!quantity.trim()) {
-      newErrors.quantity = "Cantidad es requerida";
-    } else if (isNaN(quantity) || parseFloat(quantity) <= 0) {
-      newErrors.quantity = "La cantidad debe ser un número positivo";
+    if (!name.trim()) {
+      newErrors.name = "El nombre de la presentación es requerido";
     }
     
-    if (!presentationImages.some(img => img.file)) {
-      newErrors.images = "Por favor suba al menos una imagen";
+    if (!promptText.trim()) {
+      newErrors.promptText = "El texto del prompt es requerido";
+    }
+    
+    if (!templateImage.trim()) {
+      newErrors.templateImage = "La imagen template (base64) es requerida";
     }
 
     setErrors(newErrors);
@@ -94,25 +98,18 @@ const PresentationForm = ({ onSuccess }) => {
       }
 
       const token = await currentUser.getIdToken();
-      const formData = new FormData();
       
-      formData.append("name", `${quantity} ${measure}`);
-      formData.append("type", type);
-      formData.append("measure", measure);
-      formData.append("quantity", quantity);
-      
-      presentationImages.forEach((image, index) => {
-        if (image.file) {
-          formData.append(`images[site${index + 1}]`, image.file);
-        }
-      });
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/presentaciones/nueva`, {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: formData,
+        body: JSON.stringify({
+          name: name.trim(),
+          promptText: promptText.trim(),
+          templateImage: templateImage
+        }),
       });
 
       if (!response.ok) {
@@ -136,85 +133,95 @@ const PresentationForm = ({ onSuccess }) => {
   return (
     <form onSubmit={handleSubmit} className="form-container">
       <div className="form-group">
-        <label htmlFor="type" className="card-label">
-          Tipo de presentación:
-        </label>
-        <select
-          id="type"
-          value={type}
-          onChange={handleTypeChange}
-          className={`input-field ${errors.type ? "error" : ""}`}
-        >
-          <option value="solido">Sólido</option>
-          <option value="liquido">Líquido</option>
-        </select>
-        {errors.type && <span className="error-message">{errors.type}</span>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="measure" className="card-label">
-          Medida:
-        </label>
-        <select
-          id="measure"
-          value={measure}
-          onChange={(e) => setMeasure(e.target.value)}
-          className={`input-field ${errors.measure ? "error" : ""}`}
-        >
-          {renderMeasurementOptions()}
-        </select>
-        {errors.measure && <span className="error-message">{errors.measure}</span>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="quantity" className="card-label">
-          Cantidad:
+        <label htmlFor="name" className="card-label">
+          Nombre de la presentación:
         </label>
         <input
-          type="number"
-          id="quantity"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          className={`input-field ${errors.quantity ? "error" : ""}`}
-          placeholder="Introduzca la cantidad"
-          min="0"
-          step="any"
+          type="text"
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={`input-field ${errors.name ? "error" : ""}`}
+          placeholder="Introduzca el nombre de la presentación"
         />
-        {errors.quantity && <span className="error-message">{errors.quantity}</span>}
+        {errors.name && <span className="error-message">{errors.name}</span>}
       </div>
 
       <div className="form-group">
-        <label className="card-label">Imágenes</label>
-        <div className="image-container">
-          {presentationImages.map((image, index) => (
-            <div key={index} className="image-circle">
-              <label htmlFor={`presentation-image-${index}`} className="image-upload-label">
-                {image.previewUrl ? (
-                  <img
-                    src={image.previewUrl}
-                    alt={`Presentation ${index + 1}`}
-                    className="image-preview"
-                  />
-                ) : (
-                  <span className="plus-sign">+</span>
-                )}
-              </label>
-              <input
-                type="file"
-                id={`presentation-image-${index}`}
-                className="image-upload-input"
-                accept="image/*"
-                onChange={(e) => handleImageUpload(e, index)}
-              />
-            </div>
-          ))}
-        </div>
-        {errors.images && <span className="error-message">{errors.images}</span>}
+        <label htmlFor="promptText" className="card-label">
+          Texto del prompt para IA:
+        </label>
+        <textarea
+          id="promptText"
+          value={promptText}
+          onChange={(e) => setPromptText(e.target.value)}
+          className={`input-field ${errors.promptText ? "error" : ""}`}
+          placeholder="Introduzca el prompt que se usará para generar imágenes con IA"
+          rows="6"
+        />
+        {errors.promptText && <span className="error-message">{errors.promptText}</span>}
       </div>
+
+      <div className="form-group">
+        <label className="card-label">Imagen Template (Base64):</label>
+        
+        {/* Text Input Option */}
+        <div className="form-group">
+          <label htmlFor="template-image-text" className="card-label">
+            Pegar datos Base64 directamente:
+          </label>
+          <textarea
+            id="template-image-text"
+            value={templateImage}
+            onChange={handleTemplateImageTextChange}
+            className={`input-field ${errors.templateImage ? "error" : ""}`}
+            placeholder="Pegue aquí los datos base64 de la imagen template..."
+            rows="4"
+          />
+        </div>
+
+        {/* File Upload Option */}
+        <div className="form-group">
+          <label htmlFor="template-image-file" className="card-label">
+            O subir archivo .txt con datos Base64:
+          </label>
+          <input
+            type="file"
+            id="template-image-file"
+            className="file-input"
+            accept=".txt"
+            onChange={handleTemplateImageFileUpload}
+          />
+        </div>
+
+        {/* Preview */}
+        {templateImagePreview && (
+          <div className="form-group">
+            <label className="card-label">Vista previa:</label>
+            <div className="image-container">
+              <div className="image-circle">
+                <img
+                  src={templateImagePreview}
+                  alt="Template Preview"
+                  className="image-preview"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {errors.templateImage && <span className="error-message">{errors.templateImage}</span>}
+      </div>
+
+      {errors.submit && (
+        <div className="form-group">
+          <span className="error-message">{errors.submit}</span>
+        </div>
+      )}
 
       <div className="form-group">
         <button type="submit" className="submit-button">
-          Añadir presentación
+          Crear presentación
         </button>
       </div>
     </form>
