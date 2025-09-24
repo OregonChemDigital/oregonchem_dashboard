@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import GridContainer from '../../components/GridContainer/GridContainer';
-import GridCard from '../../components/GridCard/GridCard';
+import GridContainer from '../../components/features/GridComponents/GridContainer/GridContainer';
+import GridCard from '../../components/features/GridComponents/GridCard/GridCard';
 import { useViewMode } from '../../contexts/ViewModeContext';
 import { ENDPOINTS } from '../../config/api';
 import './CategoryList.css';

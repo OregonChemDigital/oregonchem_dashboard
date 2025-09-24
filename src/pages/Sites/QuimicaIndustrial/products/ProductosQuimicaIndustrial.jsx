@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import GridCard from '../../../../components/GridCard/GridCard';
-import GridContainer from '../../../../components/GridContainer/GridContainer';
+import GridCard from '../../../../components/features/GridComponents/GridCard/GridCard';
+import GridContainer from '../../../../components/features/GridComponents/GridContainer/GridContainer';
 import { FaTh, FaList, FaSort } from 'react-icons/fa';
 import { useViewMode } from '../../../../contexts/ViewModeContext';
 import { ENDPOINTS } from '../../../../config/api';

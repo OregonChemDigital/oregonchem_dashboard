@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "../../firebase/firebase";
-import Login from "../Login/Login";
+import Login from "../auth/Login";
 import PresentationForm from "../../components/Forms/PresentationForm";
 import CategoryForm from "../../components/Forms/CategoryForm";
 import BannerForm from "../../components/Forms/BannerForm";
 import ProductForm from "../../components/Forms/ProductForm";
 import { fetchWithCache, API_ENDPOINTS, clearCache } from "../../utils/api";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import LoadingSpinner from "../../components/ui/LoadingSpinner/LoadingSpinner";
 import "../../styles/Layout.css";
 
 const Dashboard = () => {

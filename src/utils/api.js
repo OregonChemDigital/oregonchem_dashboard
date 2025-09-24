@@ -6,7 +6,7 @@ export const API_URL = import.meta.env.DEV
     ? (import.meta.env.VITE_API_URL || 'http://localhost:5001')
     : 'https://oregonchem-backend.onrender.com';
 
-console.log('API URL:', API_URL); // Debug log
+// Environment configuration
 
 class APICache {
     constructor() {
@@ -58,13 +58,11 @@ const apiCache = new APICache();
 
 export const fetchWithCache = async (endpoint, options = {}, force = false) => {
     const url = `${API_URL}${endpoint}`;
-    console.log('Fetching from:', url); // Debug log
 
     // Check cache first
     if (!force) {
         const cachedData = apiCache.get(url);
         if (cachedData) {
-            console.log('Using cached data for:', url); // Debug log
             return cachedData;
         }
     }
@@ -88,12 +86,10 @@ export const fetchWithCache = async (endpoint, options = {}, force = false) => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('API Error Response:', errorText); // Debug log
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
         const data = await response.json();
-        console.log('API Response:', data); // Debug log
 
         // Update cache
         apiCache.set(url, data);
@@ -112,14 +108,44 @@ export const clearCache = () => {
 
 // Common API endpoints
 export const API_ENDPOINTS = {
-    PRODUCTS: '/api/public/productos',
-    NEW_PRODUCT: '/api/productos/nuevo',
-    CATEGORIES: '/api/public/categorias',
-    NEW_CATEGORY: '/api/categorias/nueva',
-    PRESENTATIONS: '/api/public/presentaciones',
-    NEW_PRESENTATION: '/api/presentaciones/nueva',
-    BANNERS: '/api/public/banners',
-    NEW_BANNER: '/api/banners/nuevo',
+    // Products (Admin endpoints for dashboard)
+    PRODUCTS: '/api/productos',
+    PUBLIC_PRODUCTS: '/api/public/productos',
+    CREATE_PRODUCT: '/api/productos/nuevo',
+    NEW_AI_PRODUCT: '/api/productos/ai/nuevo',
+    UPDATE_PRODUCT: '/api/productos',
+    DELETE_PRODUCT: '/api/productos',
+    
+    // Categories (Admin endpoints for dashboard)
+    CATEGORIES: '/api/categorias',
+    PUBLIC_CATEGORIES: '/api/public/categorias',
+    CREATE_CATEGORY: '/api/categorias/nueva',
+    UPDATE_CATEGORY: '/api/categorias',
+    DELETE_CATEGORY: '/api/categorias',
+    
+    // Presentations (Admin endpoints for dashboard)
+    PRESENTATIONS: '/api/presentaciones',
+    PUBLIC_PRESENTATIONS: '/api/public/presentaciones',
+    CREATE_PRESENTATION: '/api/presentaciones/nueva',
+    UPDATE_PRESENTATION: '/api/presentaciones',
+    DELETE_PRESENTATION: '/api/presentaciones',
+    
+    // Banners (Admin endpoints for dashboard)
+    BANNERS: '/api/banners',
+    PUBLIC_BANNERS: '/api/public/banners',
+    CREATE_BANNER: '/api/banners/nuevo',
+    
+    // Quotes
     QUOTES: '/api/public/quotes',
-    ANALYTICS: '/api/analytics'
+    
+    // Analytics
+    ANALYTICS: '/api/analytics',
+    
+    // Search
+    SEARCH: '/api/search',
+    
+    // Auth
+    LOGIN: '/api/auth/login',
+    LOGOUT: '/api/auth/logout',
+    VERIFY_TOKEN: '/api/auth/verify-token'
 }; 

@@ -3,7 +3,7 @@ import './QuimicaIndustrialAnalytics.css';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../../../firebase/firebase';
 import { useAuth } from '../../../contexts/authContext';
-import AnalyticsWidget from '../../../components/widgets/AnalyticsWidget';
+import AnalyticsWidget from '../../../components/features/Analytics/AnalyticsWidget';
 
 const QuimicaIndustrial = () => {
     const [analyticsData, setAnalyticsData] = useState(null);

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { FaTh, FaList, FaSort, FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
-import { useViewMode } from '../../contexts/ViewModeContext';
-import ProductPopupCard from '../PopupCards/ProductPopupCard/ProductPopupCard';
-import PresentationPopupCard from '../PopupCards/PresentationPopupCard/PresentationPopupCard';
-import CategoryPopupCard from '../PopupCards/CategoryPopupCard/CategoryPopupCard';
-import BannerPopupCard from '../PopupCards/BannerPopupCard/BannerPopupCard';
-import '../../styles/ActionButtons.css';
+import { useViewMode } from '../../../../contexts/ViewModeContext';
+import ProductPopupCard from '../../../PopupCards/ProductPopupCard/ProductPopupCard';
+import PresentationPopupCard from '../../../PopupCards/PresentationPopupCard/PresentationPopupCard';
+import CategoryPopupCard from '../../../PopupCards/CategoryPopupCard/CategoryPopupCard';
+import BannerPopupCard from '../../../PopupCards/BannerPopupCard/BannerPopupCard';
+import '../../../../styles/ActionButtons.css';
 import './GridContainer.css';
 
 const GridContainer = ({ 
@@ -18,7 +18,9 @@ const GridContainer = ({
   onSearch,
   renderListHeader,
   renderListRow,
-  listView = false
+  listView = false,
+  onUpdate,
+  onDelete
 }) => {
   const { viewMode, setViewMode } = useViewMode();
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,14 +46,21 @@ const GridContainer = ({
   };
 
   const handleUpdate = (item) => {
-    if (children.props.onUpdate) {
-      children.props.onUpdate(item);
+    console.log('GridContainer handleUpdate called with item:', item);
+    // Reset popup state when update is triggered
+    setIsPopupOpen(false);
+    setSelectedItem(null);
+    if (onUpdate) {
+      console.log('Calling onUpdate function');
+      onUpdate(item);
+    } else {
+      console.log('onUpdate function not provided');
     }
   };
 
   const handleDelete = (item) => {
-    if (children.props.onDelete) {
-      children.props.onDelete(item);
+    if (onDelete) {
+      onDelete(item);
     }
   };
 

@@ -3,8 +3,8 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "./contexts/authContext";
 import { LoadingProvider } from "./contexts/loadingContext";
 import { ViewModeProvider } from "./contexts/ViewModeContext";
-import LoadingSpinner from "./components/LoadingSpinner";
-import SuccessMessage from "./components/SuccessMessage";
+import LoadingSpinner from "./components/ui/LoadingSpinner/LoadingSpinner";
+import SuccessMessage from "./components/ui/SuccessMessage/SuccessMessage";
 import { useLoading } from "./contexts/loadingContext";
 import AppRoutes from "./routes/routes";
 import "./App.css";
@@ -28,7 +28,12 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <AuthProvider>
         <LoadingProvider>
           <ViewModeProvider>

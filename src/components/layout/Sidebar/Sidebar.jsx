@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { IoHome, IoCube, IoAlbums, IoFlask, IoImage, IoGlobe, IoAnalytics, IoChevronDown, IoChevronForward } from "react-icons/io5";
-import logo from "../../images/oregonchemlogo.png";
-import shortLogo from "../../images/oregonchemlogoshort.png";
-import { useAuth } from "../../contexts/authContext";
+import logo from "../../../images/oregonchemlogo.png";
+import shortLogo from "../../../images/oregonchemlogoshort.png";
+import { useAuth } from "../../../contexts/authContext";
 import "./Sidebar.css";
 
 const Sidebar = ({ collapsed }) => {
@@ -41,6 +41,7 @@ const Sidebar = ({ collapsed }) => {
                     <div className="sidebar__link" onClick={toggleProductsMenu}>
                         <IoCube />
                         <span>Productos</span>
+
                         {!collapsed && (isProductsOpen ? <IoChevronDown /> : <IoChevronForward />)}
                     </div>
                     {!collapsed && isProductsOpen && (
@@ -48,6 +49,11 @@ const Sidebar = ({ collapsed }) => {
                             <li>
                                 <NavLink to="/productos/crear" className="sidebar__sublink">
                                     Crear Producto
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/productos/crear-ai" className="sidebar__sublink">
+                                    Crear Producto con IA
                                 </NavLink>
                             </li>
                             <li>

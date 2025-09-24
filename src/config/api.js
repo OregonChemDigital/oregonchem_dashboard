@@ -5,11 +5,17 @@ export default API_URL;
 
 // API Endpoints
 export const ENDPOINTS = {
-    // Public endpoints
-    BANNERS: `${API_URL}/api/public/banners`,
-    CATEGORIES: `${API_URL}/api/public/categorias`,
-    PRESENTATIONS: `${API_URL}/api/public/presentaciones`,
-    PRODUCTS: `${API_URL}/api/public/productos`,
+    // Admin endpoints (for dashboard)
+    BANNERS: `${API_URL}/api/banners`,
+    CATEGORIES: `${API_URL}/api/categorias`,
+    PRESENTATIONS: `${API_URL}/api/presentaciones`,
+    PRODUCTS: `${API_URL}/api/productos`,
+    
+    // Public endpoints (for frontend sites)
+    PUBLIC_BANNERS: `${API_URL}/api/public/banners`,
+    PUBLIC_CATEGORIES: `${API_URL}/api/public/categorias`,
+    PUBLIC_PRESENTATIONS: `${API_URL}/api/public/presentaciones`,
+    PUBLIC_PRODUCTS: `${API_URL}/api/public/productos`,
     
     // Analytics endpoints
     ANALYTICS: {

@@ -1,7 +1,7 @@
 import React from "react";
 import { IoChevronBack, IoChevronForward, IoLogOut } from "react-icons/io5";
-import { useAuth } from "../../contexts/authContext";
-import { doSignOut } from "../../firebase/auth";
+import { useAuth } from "../../../contexts/authContext";
+import { doSignOut } from "../../../firebase/auth";
 import "./Topbar.css";
 
 const Topbar = ({ collapsed, toggleSidebar }) => {

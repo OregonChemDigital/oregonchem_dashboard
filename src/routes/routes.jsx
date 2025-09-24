@@ -1,24 +1,25 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../contexts/authContext";
-import Sidebar from "../components/Navbars/Sidebar";
-import Topbar from "../components/Navbars/Topbar";
-import Login from "../pages/Login/Login";
-import Dashboard from "../pages/Dashboard/Dashboard";
-import CreateProduct from "../pages/Products/CreateProduct";
-import AllProductsList from "../pages/Products/AllProductsList";
-import CreateCategory from "../pages/Categories/CreateCategory";
-import CategoryList from "../pages/Categories/CategoryList";
-import CreatePresentation from "../pages/Presentations/CreatePresentation";
-import PresentationList from "../pages/Presentations/PresentationList";
-import CreateBanner from "../pages/Banners/CreateBanner";
-import BannerList from "../pages/Banners/BannerList";
+import Sidebar from "../components/layout/Sidebar/Sidebar";
+import Topbar from "../components/layout/Topbar/Topbar";
+import Login from "../pages/auth/Login";
+import Dashboard from "../pages/dashboard/Dashboard";
+import CreateProduct from "../pages/products/CreateProduct";
+import CreateAIProduct from "../pages/products/CreateAIProduct";
+import AllProductsList from "../pages/products/AllProductsList";
+import CreateCategory from "../pages/categories/CreateCategory";
+import CategoryList from "../pages/categories/CategoryList";
+import CreatePresentation from "../pages/presentations/CreatePresentation";
+import PresentationList from "../pages/presentations/PresentationList";
+import CreateBanner from "../pages/banners/CreateBanner";
+import BannerList from "../pages/banners/BannerList";
 import PrivateRoute from "../contexts/PrivateRoute";
-import QuimicaIndustrialAnalytics from "../pages/Sites/QuimicaIndustrial/QuimicaIndustrialAnalytics";
-import ProductosQuimicaIndustrial from "../pages/Sites/QuimicaIndustrial/products/ProductosQuimicaIndustrial";
-import QuimicaIndustrialBanners from "../pages/Sites/QuimicaIndustrial/banners/QuimicaIndustrialBanners";
-import AnalyticsDashboard from "../components/AnalyticsDashboard";
-import CombinedAnalyticsDashboard from '../components/CombinedAnalyticsDashboard';
+import QuimicaIndustrialAnalytics from "../pages/sites/QuimicaIndustrial/QuimicaIndustrialAnalytics";
+import ProductosQuimicaIndustrial from "../pages/sites/QuimicaIndustrial/products/ProductosQuimicaIndustrial";
+import QuimicaIndustrialBanners from "../pages/sites/QuimicaIndustrial/banners/QuimicaIndustrialBanners";
+import AnalyticsDashboard from "../components/features/Analytics/AnalyticsDashboard";
+import CombinedAnalyticsDashboard from '../components/features/Analytics/CombinedAnalyticsDashboard';
 
 const AppRoutes = () => {
     const [collapsed, setCollapsed] = useState(false);
@@ -34,6 +35,7 @@ const AppRoutes = () => {
             <div className="main-content">
                 <Topbar collapsed={collapsed} toggleSidebar={toggleSidebar} />
                 <Routes>
+                    <Route path="/" element={<Navigate to={userLoggedIn ? "/dashboard" : "/login"} replace />} />
                     <Route path="/login" element={<Login />} />
                     {userLoggedIn ? (
                         <>
@@ -41,6 +43,7 @@ const AppRoutes = () => {
                             
                             {/* Global Routes */}
                             <Route path="/productos/crear" element={<PrivateRoute><CreateProduct /></PrivateRoute>} />
+                            <Route path="/productos/crear-ai" element={<PrivateRoute><CreateAIProduct /></PrivateRoute>} />
                             <Route path="/productos/todos" element={<PrivateRoute><AllProductsList /></PrivateRoute>} />
                             <Route path="/categorias/crear" element={<PrivateRoute><CreateCategory /></PrivateRoute>} />
                             <Route path="/categorias/todas" element={<PrivateRoute><CategoryList /></PrivateRoute>} />
